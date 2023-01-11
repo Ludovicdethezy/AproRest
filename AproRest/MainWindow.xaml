@@ -1,0 +1,124 @@
+﻿<Window x:Class="AproRest.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:behaviors="clr-namespace:AproRest.Behaviors"
+        xmlns:local="clr-namespace:AproRest"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+        xml:lang="fr-FR"
+        mc:Ignorable="d"
+        Title="Aprolis Rest FleetControler Interface" Height="459.104" Width="1051.012">
+    <Grid Margin="0,0,0,1">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="80"/>
+            <ColumnDefinition Width="206"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="0*"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="start" Content="Create order" HorizontalAlignment="Left" Margin="27,76,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click" Height="20" Grid.ColumnSpan="2"/>
+        <ListView x:Name="log2" HorizontalAlignment="Right" Width="262" Grid.Column="2">
+            <i:Interaction.Behaviors>
+                <behaviors:ListBoxScrollIntoViewBehavior2/>
+            </i:Interaction.Behaviors>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <StatusBar HorizontalAlignment="Left" Width="1043" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="3" Grid.RowSpan="2" Height="43" VerticalAlignment="Bottom" Grid.Row="1">
+            <Label x:Name="status" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="33" Width="461"/>
+            <Label x:Name="status_db" Content="Label" HorizontalAlignment="Left" Width="461" Grid.Row="1" Grid.Column="2" Height="33"/>
+        </StatusBar>
+
+        <TextBox x:Name="Fetch_address" HorizontalAlignment="Left" Height="20" Margin="68,10,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="75"  Grid.ColumnSpan="2"/>
+        <TextBox x:Name="Deliver_address" HorizontalAlignment="Left" Height="20" Margin="68,35,0,0" TextWrapping="Wrap" Text="A1" VerticalAlignment="Top" Width="75"  Grid.ColumnSpan="2"/>
+        <Label Content="Fetch" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39"/>
+        <Label Content="Deliver" HorizontalAlignment="Left" Margin="10,31,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
+        <DataGrid x:Name="order_list" Margin="0,111,262,192" Grid.ColumnSpan="3" AutoGeneratingColumn="Agv_AutoGeneratingColumn">
+
+
+            <DataGrid.BindingGroup>
+                <BindingGroup/>
+
+            </DataGrid.BindingGroup>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="AliceBlue"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Palett delivered">
+                            <Setter Property="Background" Value="LawnGreen"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Done">
+                            <Setter Property="Background" Value="SpringGreen"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Canceled">
+                            <Setter Property="Background" Value="OrangeRed"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Palett fetched">
+                            <Setter Property="Background" Value="LightSkyBlue"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to deliver">
+                            <Setter Property="Background" Value="LemonChiffon"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to fetch">
+                            <Setter Property="Background" Value="LightBlue"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error">
+                            <Setter Property="Background" Value="Red"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error 400">
+                            <Setter Property="Background" Value="Red"></Setter>
+                        </DataTrigger>
+
+
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+        </DataGrid>
+        <TextBox x:Name="Fetch_Height" HorizontalAlignment="Left" Height="20" Margin="118,10,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="75" Grid.Column="1"/>
+        <TextBox x:Name="Deliver_Height" HorizontalAlignment="Left" Height="20" Margin="118,35,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="75" Grid.Column="1"/>
+        <Label Content="Height" HorizontalAlignment="Left" Margin="66,17,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47" Grid.Column="1"/>
+        <Rectangle Fill="#FFF4F4F5" Height="91" Margin="3,0,0,0" Stroke="Black" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Left" Width="183"/>
+        <TextBox x:Name="DimX" Height="20" TextWrapping="Wrap" Text="1200" VerticalAlignment="Top" Grid.Column="2" Margin="78,12,0,0" HorizontalAlignment="Left" Width="75"/>
+        <TextBox x:Name="DimY" Height="20" Margin="78,37,0,0" TextWrapping="Wrap" Text="800" VerticalAlignment="Top"  Grid.Column="2" HorizontalAlignment="Left" Width="75"/>
+        <TextBox x:Name="Weight" Height="20" Margin="78,63,0,0" TextWrapping="Wrap" Text="100" VerticalAlignment="Top"  AcceptsTab="True" Grid.Column="2" HorizontalAlignment="Left" Width="75"/>
+        <Label Content="Weight( Kg)" HorizontalAlignment="Left" Margin="3,59,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
+        <Label Content="DimY (mm)" HorizontalAlignment="Left" Margin="3,33,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
+        <Label Content="DimX (mm)" HorizontalAlignment="Left" Margin="3,8,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
+        <Button x:Name="delete" Content="Delete" Grid.Column="1" HorizontalAlignment="Left" Margin="38,76,0,0" Width="51" Click="Button_Click" Height="20" VerticalAlignment="Top"/>
+        <DataGrid Grid.ColumnSpan="3" x:Name="agv" Margin="0,0,267,2" Height="164" VerticalAlignment="Bottom" IsReadOnly="true" Background="LightGray" RowBackground="LightYellow" AlternatingRowBackground="LightBlue" >
+
+
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="Background" Value="AliceBlue"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding loaded1}" Value="1">
+                            <Setter Property="Background" Value="LawnGreen"></Setter>
+                        </DataTrigger>
+
+
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+        <Label Content="AGVs" Margin="11,0,31,161" RenderTransformOrigin="0.579,-0.038" Height="32" VerticalAlignment="Bottom"/>
+        <Button x:Name="delete_Copy" Content="Cancel" Grid.Column="1" HorizontalAlignment="Left" Margin="108,76,0,0" Width="51" Click="cancel_Click" Height="20" VerticalAlignment="Top"/>
+        <Button x:Name="delete_Copy1" Content="RAZ" Grid.Column="2" Margin="0,81,279,0" Click="cancel2_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="29"/>
+        <Button x:Name="csv_loazd" Content="CSV" Grid.Column="2" Margin="0,81,324,0" VerticalAlignment="Top" Click="Csv_loazd_Click" HorizontalAlignment="Right" Width="75"/>
+        <Label Content="IP" HorizontalAlignment="Left" Margin="302,18,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39" Grid.Column="2"/>
+        <TextBox x:Name="Ip_host" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="346,12,0,0" TextWrapping="Wrap" Text="localhost:8018" VerticalAlignment="Top" Width="120" TextChanged="ip"/>
+        <TextBox x:Name="Ip_visu" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="346,43,0,0" TextWrapping="Wrap" Text="localhost:8019" VerticalAlignment="Top" Width="120" TextChanged="ipvisu"/>
+        <CheckBox x:Name="connect" Content="Connection" Grid.Column="2" HorizontalAlignment="Left" Margin="260,45,0,0" VerticalAlignment="Top" Checked="Connect_Checked"/>
+
+    </Grid>
+</Window>

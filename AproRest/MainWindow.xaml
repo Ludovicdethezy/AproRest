@@ -8,117 +8,331 @@
         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xml:lang="fr-FR"
         mc:Ignorable="d"
-        Title="Aprolis Rest FleetControler Interface" Height="459.104" Width="1051.012">
+        Title="Aprolis Rest FleetControler Interface" Height="790.329" Width="1212.012" Icon="picto-agv-aprolis.ico" Cursor="Arrow">
+
+
     <Grid Margin="0,0,0,1">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="80"/>
-            <ColumnDefinition Width="206"/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="275*"/>
+            <ColumnDefinition Width="768*"/>
+            <ColumnDefinition Width="161*"/>
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="18"/>
-            <RowDefinition Height="26"/>
-            <RowDefinition Height="0*"/>
-        </Grid.RowDefinitions>
-        <Button x:Name="start" Content="Create order" HorizontalAlignment="Left" Margin="27,76,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click" Height="20" Grid.ColumnSpan="2"/>
-        <ListView x:Name="log2" HorizontalAlignment="Right" Width="262" Grid.Column="2">
-            <i:Interaction.Behaviors>
-                <behaviors:ListBoxScrollIntoViewBehavior2/>
-            </i:Interaction.Behaviors>
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <StatusBar HorizontalAlignment="Left" Width="1043" RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="3" Grid.RowSpan="2" Height="43" VerticalAlignment="Bottom" Grid.Row="1">
-            <Label x:Name="status" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="33" Width="461"/>
-            <Label x:Name="status_db" Content="Label" HorizontalAlignment="Left" Width="461" Grid.Row="1" Grid.Column="2" Height="33"/>
-        </StatusBar>
+        <TabControl Margin="0,0,0,1" Grid.ColumnSpan="3">
+            <TabItem Header="Host">
+                <Grid Background="#FFE5E5E5" Margin="0,0,0,48" RenderTransformOrigin="0.501,0.446">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="46*"/>
+                        <ColumnDefinition Width="13*"/>
+                        <ColumnDefinition Width="1139*"/>
+                        <ColumnDefinition Width="0*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.ColumnSpan="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="14"/>
+                            <ColumnDefinition Width="35"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="221"/>
+                            <ColumnDefinition Width="707*"/>
+                            <ColumnDefinition Width="205*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition/>
+                            <RowDefinition Height="17"/>
+                            <RowDefinition Height="26"/>
+                            <RowDefinition Height="0*"/>
+                        </Grid.RowDefinitions>
+                        <!--<ListView x:Name="log2" HorizontalAlignment="Right" Width="262" Grid.Column="2" FontSize="8" Grid.ColumnSpan="2" Margin="0,-176,32,206">
+                <i:Interaction.Behaviors>
+                    <behaviors:ListBoxScrollIntoViewBehavior2/>
+                </i:Interaction.Behaviors>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn/>
+                    </GridView>
+                </ListView.View>
+            </ListView>-->
+                        <DataGrid x:Name="order_list" Margin="0,131,0,199" Grid.ColumnSpan="6" AutoGeneratingColumn="Agv_AutoGeneratingColumn" FontSize="11" SelectionChanged="Order_list_SelectionChanged_1" MouseDoubleClick="double_click" CanUserAddRows="false">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="ACK ">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Click="DAck_Click" Content="Ack"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
 
-        <TextBox x:Name="Fetch_address" HorizontalAlignment="Left" Height="20" Margin="68,10,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="75"  Grid.ColumnSpan="2"/>
-        <TextBox x:Name="Deliver_address" HorizontalAlignment="Left" Height="20" Margin="68,35,0,0" TextWrapping="Wrap" Text="A1" VerticalAlignment="Top" Width="75"  Grid.ColumnSpan="2"/>
-        <Label Content="Fetch" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39"/>
-        <Label Content="Deliver" HorizontalAlignment="Left" Margin="10,31,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
-        <DataGrid x:Name="order_list" Margin="0,111,262,192" Grid.ColumnSpan="3" AutoGeneratingColumn="Agv_AutoGeneratingColumn">
+                            <DataGrid.BindingGroup>
+                                <BindingGroup/>
 
+                            </DataGrid.BindingGroup>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Setter Property="Background" Value="AliceBlue"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Pallet delivered">
+                                            <Setter Property="Background" Value="LawnGreen"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Done">
+                                            <Setter Property="Background" Value="SpringGreen"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Canceled">
+                                            <Setter Property="Background" Value="Orange"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Pallet fetched">
+                                            <Setter Property="Background" Value="LightSkyBlue"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to deliver">
+                                            <Setter Property="Background" Value="LemonChiffon"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to fetch">
+                                            <Setter Property="Background" Value="LightBlue"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error">
+                                            <Setter Property="Background" Value="Red"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error 400">
+                                            <Setter Property="Background" Value="IndianRed"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CurentStatus}" Value="Failed">
+                                            <Setter Property="Background" Value="OrangeRed"/>
+                                        </DataTrigger>
 
-            <DataGrid.BindingGroup>
-                <BindingGroup/>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
 
-            </DataGrid.BindingGroup>
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Background" Value="AliceBlue"></Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Palett delivered">
-                            <Setter Property="Background" Value="LawnGreen"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Done">
-                            <Setter Property="Background" Value="SpringGreen"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Canceled">
-                            <Setter Property="Background" Value="OrangeRed"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Palett fetched">
-                            <Setter Property="Background" Value="LightSkyBlue"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to deliver">
-                            <Setter Property="Background" Value="LemonChiffon"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="AGV ready to fetch">
-                            <Setter Property="Background" Value="LightBlue"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error">
-                            <Setter Property="Background" Value="Red"></Setter>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding CurentStatus}" Value="Error 400">
-                            <Setter Property="Background" Value="Red"></Setter>
-                        </DataTrigger>
-
-
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-
-        </DataGrid>
-        <TextBox x:Name="Fetch_Height" HorizontalAlignment="Left" Height="20" Margin="118,10,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="75" Grid.Column="1"/>
-        <TextBox x:Name="Deliver_Height" HorizontalAlignment="Left" Height="20" Margin="118,35,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="75" Grid.Column="1"/>
-        <Label Content="Height" HorizontalAlignment="Left" Margin="66,17,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47" Grid.Column="1"/>
-        <Rectangle Fill="#FFF4F4F5" Height="91" Margin="3,0,0,0" Stroke="Black" VerticalAlignment="Top" Grid.Column="2" HorizontalAlignment="Left" Width="183"/>
-        <TextBox x:Name="DimX" Height="20" TextWrapping="Wrap" Text="1200" VerticalAlignment="Top" Grid.Column="2" Margin="78,12,0,0" HorizontalAlignment="Left" Width="75"/>
-        <TextBox x:Name="DimY" Height="20" Margin="78,37,0,0" TextWrapping="Wrap" Text="800" VerticalAlignment="Top"  Grid.Column="2" HorizontalAlignment="Left" Width="75"/>
-        <TextBox x:Name="Weight" Height="20" Margin="78,63,0,0" TextWrapping="Wrap" Text="100" VerticalAlignment="Top"  AcceptsTab="True" Grid.Column="2" HorizontalAlignment="Left" Width="75"/>
-        <Label Content="Weight( Kg)" HorizontalAlignment="Left" Margin="3,59,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
-        <Label Content="DimY (mm)" HorizontalAlignment="Left" Margin="3,33,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
-        <Label Content="DimX (mm)" HorizontalAlignment="Left" Margin="3,8,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.Column="2"/>
-        <Button x:Name="delete" Content="Delete" Grid.Column="1" HorizontalAlignment="Left" Margin="38,76,0,0" Width="51" Click="Button_Click" Height="20" VerticalAlignment="Top"/>
-        <DataGrid Grid.ColumnSpan="3" x:Name="agv" Margin="0,0,267,2" Height="164" VerticalAlignment="Bottom" IsReadOnly="true" Background="LightGray" RowBackground="LightYellow" AlternatingRowBackground="LightBlue" >
-
-
-
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Setter Property="Background" Value="AliceBlue"></Setter>
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding loaded1}" Value="1">
-                            <Setter Property="Background" Value="LawnGreen"></Setter>
-                        </DataTrigger>
+                        </DataGrid>
+                        <DataGrid Grid.ColumnSpan="6" x:Name="agv" Height="215" VerticalAlignment="Bottom" IsReadOnly="true" Background="LightGray" RowBackground="LightYellow" AlternatingRowBackground="LightBlue" FontSize="11" Margin="0,0,0,-5" Grid.RowSpan="4" CanUserAddRows="false">
 
 
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-        </DataGrid>
-        <Label Content="AGVs" Margin="11,0,31,161" RenderTransformOrigin="0.579,-0.038" Height="32" VerticalAlignment="Bottom"/>
-        <Button x:Name="delete_Copy" Content="Cancel" Grid.Column="1" HorizontalAlignment="Left" Margin="108,76,0,0" Width="51" Click="cancel_Click" Height="20" VerticalAlignment="Top"/>
-        <Button x:Name="delete_Copy1" Content="RAZ" Grid.Column="2" Margin="0,81,279,0" Click="cancel2_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="29"/>
-        <Button x:Name="csv_loazd" Content="CSV" Grid.Column="2" Margin="0,81,324,0" VerticalAlignment="Top" Click="Csv_loazd_Click" HorizontalAlignment="Right" Width="75"/>
-        <Label Content="IP" HorizontalAlignment="Left" Margin="302,18,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39" Grid.Column="2"/>
-        <TextBox x:Name="Ip_host" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="346,12,0,0" TextWrapping="Wrap" Text="localhost:8018" VerticalAlignment="Top" Width="120" TextChanged="ip"/>
-        <TextBox x:Name="Ip_visu" Grid.Column="2" HorizontalAlignment="Left" Height="23" Margin="346,43,0,0" TextWrapping="Wrap" Text="localhost:8019" VerticalAlignment="Top" Width="120" TextChanged="ipvisu"/>
-        <CheckBox x:Name="connect" Content="Connection" Grid.Column="2" HorizontalAlignment="Left" Margin="260,45,0,0" VerticalAlignment="Top" Checked="Connect_Checked"/>
 
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Setter Property="Background" Value="AliceBlue"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding loaded1}" Value="1">
+                                            <Setter Property="Background" Value="LawnGreen"/>
+                                        </DataTrigger>
+
+
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                        <StatusBar RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="6" Height="42" VerticalAlignment="Bottom" Grid.Row="3" Margin="0,0,-1,-52">
+                            <Label x:Name="status" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="33" Width="461"/>
+                            <Label x:Name="status_db" HorizontalAlignment="Left" Width="337" Grid.Row="1" Grid.Column="2" Height="33"/>
+                            <Label x:Name="webh" Content="webhook" HorizontalAlignment="Left" Width="337" Height="33"/>
+                        </StatusBar>
+                        <Label x:Name="agvlabel" Grid.ColumnSpan="2" Content="AGVs" HorizontalAlignment="Left" Margin="0,0,0,167" Width="47" Height="26" VerticalAlignment="Bottom"/>
+                        <GroupBox x:Name="unit" Grid.Column="4" Header="Load info" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="134" BorderBrush="#FF09324B" Margin="2,0,0,0" Background="#FFE4A1A1">
+                            <Grid HorizontalAlignment="Left" Height="109" Margin="0,0,-2,-5" VerticalAlignment="Top" Width="124">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="7*"/>
+                                    <ColumnDefinition Width="95*"/>
+                                    <ColumnDefinition Width="32*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="DimX" Height="20" TextWrapping="Wrap" Text="1200" VerticalAlignment="Top" Margin="71,7,0,0" HorizontalAlignment="Left" Width="43" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <TextBox x:Name="DimY" Height="20" Margin="71,32,0,0" TextWrapping="Wrap" Text="800" VerticalAlignment="Top" HorizontalAlignment="Left" Width="43" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <TextBox x:Name="Weight" Height="20" Margin="71,55,0,0" TextWrapping="Wrap" Text="100" VerticalAlignment="Top"  AcceptsTab="True" HorizontalAlignment="Left" Width="43" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <Label Content="Weight( Kg)" HorizontalAlignment="Left" Margin="3,50,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.ColumnSpan="2"/>
+                                <Label Content="DimY (mm)" HorizontalAlignment="Left" Margin="3,28,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.ColumnSpan="2"/>
+                                <Label Content="DimX (mm)" HorizontalAlignment="Left" Margin="3,3,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="81" Grid.ColumnSpan="2"/>
+                                <TextBox x:Name="pallet" Height="20" Margin="71,79,0,0" TextWrapping="Wrap" Text="Pallet" VerticalAlignment="Top"  AcceptsTab="True" HorizontalAlignment="Left" Width="43" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <Label Content="Pallet type" HorizontalAlignment="Left" Margin="3,75,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="88" Grid.ColumnSpan="2"/>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox Header="Order" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="286" Grid.ColumnSpan="4" BorderBrush="#FF166391" Foreground="#FF020101" Background="#FFF3C7C7">
+                            <Grid HorizontalAlignment="Left" Margin="0,0,-2,-1" Width="276">
+                                <TextBox x:Name="Fetch_address" HorizontalAlignment="Left" Height="20" Margin="50,0,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="105"/>
+                                <Label Content="Fetch" HorizontalAlignment="Left" Margin="1,-4,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39"/>
+                                <TextBox x:Name="Fetch_Height" HorizontalAlignment="Left" Height="20" Margin="207,0,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" RenderTransformOrigin="0.727,0.375"/>
+                                <TextBox x:Name="Deliver_address" HorizontalAlignment="Left" Height="20" Margin="50,25,0,0" TextWrapping="Wrap" Text="A1" VerticalAlignment="Top" Width="105"/>
+                                <Label Content="Deliver" HorizontalAlignment="Left" Margin="1,21,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
+                                <TextBox x:Name="Deliver_Height" HorizontalAlignment="Left" Height="20" Margin="207,25,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
+                                <TextBox x:Name="CWloc" Height="20" Margin="179,50,0,0" TextWrapping="Wrap" Text="UnknownLoads" VerticalAlignment="Top"  AcceptsTab="True" HorizontalAlignment="Left" Width="93" TextChanged="Pallet_Copy_TextChanged"/>
+                                <Label Content="Carwash loc :" HorizontalAlignment="Left" Margin="88,46,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="129"/>
+                                <TextBox x:Name="AGVID" HorizontalAlignment="Left" Height="20" Margin="53,50,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="30"/>
+                                <Label Content="AGV" HorizontalAlignment="Left" Margin="1,44,0,0" RenderTransformOrigin="1.105,0.962" Width="47" Height="26" VerticalAlignment="Top"/>
+                                <Button x:Name="start" Content="Create order" HorizontalAlignment="Left" Margin="1,75,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click" Height="20"/>
+                                <Button x:Name="delete" Content="Delete" HorizontalAlignment="Left" Margin="221,75,0,0" Width="51" Click="Button_Click" Height="20" VerticalAlignment="Top"/>
+                                <Button x:Name="delete_Copy" Content="Cancel" HorizontalAlignment="Left" Margin="165,75,0,0" Width="51" Click="cancel_Click" Height="20" VerticalAlignment="Top"/>
+                                <Button x:Name="update" Content="Update order" HorizontalAlignment="Left" Margin="83,75,0,0" VerticalAlignment="Top" Width="75" Click="Update_Click" Height="20"/>
+                                <Label Content="Height" HorizontalAlignment="Left" Margin="160,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
+                            </Grid>
+                        </GroupBox>
+                        <GroupBox x:Name="batch" Grid.Column="4" Header="Batch" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="112" BorderBrush="#FF09324B" Margin="136,0,0,0" Background="#FFE4A1A1">
+                            <Grid HorizontalAlignment="Left" Height="109" Margin="0,0,-2,-5" VerticalAlignment="Top" Width="124">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="7*"/>
+                                    <ColumnDefinition Width="95*"/>
+                                    <ColumnDefinition Width="32*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="area" Height="20" Margin="31.5,32,0,0" TextWrapping="Wrap" Text="800" VerticalAlignment="Top" HorizontalAlignment="Left" Width="66" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <TextBox x:Name="sequence" Height="20" Margin="55.5,55,0,0" TextWrapping="Wrap" Text="100" VerticalAlignment="Top"  AcceptsTab="True" HorizontalAlignment="Left" Width="42" Grid.ColumnSpan="2" Grid.Column="1"/>
+                                <Label x:Name="seq" Content="Sequence" HorizontalAlignment="Left" Margin="0,50,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="62" Grid.ColumnSpan="2"/>
+                                <Label Content="Area" HorizontalAlignment="Left" Margin="0,28,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="57" Grid.ColumnSpan="2"/>
+                                <CheckBox x:Name="batch_enable" Content="enable" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="batch_Checked" Height="15" Width="74" Unchecked="webhook_Checked" RenderTransformOrigin="1.226,0.867" Margin="13.5,0,0,0" Grid.Column="1"/>
+                            </Grid>
+                        </GroupBox>
+
+
+                    </Grid>
+                    <GroupBox x:Name="Webhook" Grid.Column="2" Header="Webhook" HorizontalAlignment="Left" Height="126" Margin="476,0,0,0" VerticalAlignment="Top" Width="188" BorderBrush="#FF1D6997" Background="#FFA6BD66" Foreground="Black">
+                        <Grid HorizontalAlignment="Left" Height="110" VerticalAlignment="Top" Width="178" Margin="0,0,-2,-6">
+                            <CheckBox x:Name="webhook" Content="Start Listening" VerticalAlignment="Top" Checked="webhook_Checked" Height="15" Unchecked="webhook_Checked" RenderTransformOrigin="1.226,0.867" Margin="0,0,72,0"/>
+                            <CheckBox x:Name="webhookACK" Content="Start Auto ACK" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="weback_Checked" Height="15" Width="106" Unchecked="weback_Checked" IsChecked="True" Margin="0,15,0,0"/>
+                            <TextBox x:Name="Ip_host_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8028" VerticalAlignment="Top" Width="131" TextChanged="ip" Margin="37,44,0,0"/>
+                            <TextBlock Margin="0,48,90,39"><Run Text="host"/></TextBlock>
+                            <TextBlock Margin="0,67,87,20" Text="Visu"/>
+                            <TextBox x:Name="Ip_visu_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8029" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,65,0,0"/>
+                            <CheckBox x:Name="webhook_order" Content="use webhook for order" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="weborder_Checked" Height="15" Width="160" Unchecked="weborder_Checked" Margin="0,29,-18,0"/>
+                            <TextBlock Margin="-1,88,110,7" Text="Utility"/>
+                            <TextBox x:Name="Ip_utility_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8031" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,86,0,0"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Column="2" Header="Poll event " HorizontalAlignment="Left" Height="126" Margin="669,0,0,0" VerticalAlignment="Top" Width="185" BorderBrush="#FF0D2634" Foreground="Black" Background="#FFB7CBFF">
+                        <Grid HorizontalAlignment="Left" Margin="0,0,-2,-2" Width="175">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="15*"/>
+                                <ColumnDefinition Width="188*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="Ip_host" HorizontalAlignment="Left" Height="23" Margin="28,30,0,0" TextWrapping="Wrap" Text="localhost:8018" VerticalAlignment="Top" Width="124"  Grid.Column="1"/>
+                            <Label Content="Host" HorizontalAlignment="Left" Margin="0,29,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="37" Grid.ColumnSpan="2"/>
+                            <TextBox x:Name="Ip_visu" HorizontalAlignment="Left" Height="23" Margin="28,54,0,0" TextWrapping="Wrap" Text="localhost:8019" VerticalAlignment="Top" Width="124" TextChanged="ipvisu" Grid.Column="1"/>
+                            <Label Content="Visu" HorizontalAlignment="Left" Margin="0,51,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="37" Grid.ColumnSpan="2"/>
+                            <Label Content="Utility" HorizontalAlignment="Left" Margin="0,74,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="41" Grid.ColumnSpan="2"/>
+                            <TextBox x:Name="Ip_utility" HorizontalAlignment="Left" Height="23" Margin="28,77,0,0" TextWrapping="Wrap" Text="localhost:8021" VerticalAlignment="Top" Width="124" TextChanged="iputility" Grid.Column="1"/>
+                            <CheckBox x:Name="connect" Content="activate poll events" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Checked="Connect_Checked" Height="15" Width="122" Unchecked="Connect_Checked" Grid.ColumnSpan="2"/>
+                            <CheckBox x:Name="ack_auto" Content="activate auto ack" HorizontalAlignment="Left" Margin="10,15,0,0" VerticalAlignment="Top" Checked="Ack_Checked" Height="15" Width="109" Unchecked="Ack_Checked" Grid.ColumnSpan="2"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Grid.Column="2" Header="Mass Order" HorizontalAlignment="Left" Height="126" Margin="859,0,0,0" VerticalAlignment="Top" Width="100" BorderBrush="#FF258ECD" Background="#FFAEC5C4">
+
+                        <StackPanel HorizontalAlignment="Left" Height="102" Margin="0,0,-2,-1" VerticalAlignment="Top" Width="90">
+
+                            <TextBlock TextWrapping="Wrap" Text="Reset DataBase"/>
+
+                            <Button x:Name="delete_Copy1" Content="RAZ" Click="cancel2_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="28" RenderTransformOrigin="1.607,0.45"/>
+                            <TextBlock TextWrapping="Wrap"><Run Text="I"/><Run Text="mport"/><Run Text=" csv for "/><Run Text="mass "/><Run Text="order"/></TextBlock>
+                            <Button x:Name="csv_loazd" Content="CSV" VerticalAlignment="Top" Click="Csv_loazd_Click" HorizontalAlignment="Left" Width="76" Height="20" RenderTransformOrigin="0.237,1.5"/>
+                        </StackPanel>
+                    </GroupBox>
+                    <GroupBox Grid.Column="2" Header="Settings" HorizontalAlignment="Left" Height="126" Margin="959,0,0,0" VerticalAlignment="Top" Width="100" Background="#FFE8BBDC">
+                        <Grid HorizontalAlignment="Left" Height="105" Margin="10,0,-2,-1" VerticalAlignment="Top" Width="80">
+                            <Button x:Name="load_set" Content="Load" HorizontalAlignment="Left" Margin="0,29,0,0" VerticalAlignment="Top" Width="75" Click="Load_set_Click"/>
+                            <Button x:Name="save_set" Content="Save" HorizontalAlignment="Left" Margin="0,66,0,0" VerticalAlignment="Top" Width="75" Click="Save_set_Click"/>
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Logs">
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="69*"/>
+                        <ColumnDefinition Width="532*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <ListView x:Name="log2" Margin="0,0,-13,31" Grid.ColumnSpan="2">
+                        <i:Interaction.Behaviors>
+                            <behaviors:ListBoxScrollIntoViewBehavior2/>
+                        </i:Interaction.Behaviors>
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <Button x:Name="reset_log" Content="Reset logs" RenderTransformOrigin="0.827,0.5" Click="Reset_log_Click" HorizontalAlignment="Left" Width="80" Height="31" VerticalAlignment="Bottom"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="IO" >
+
+                <Grid Background="#FFE5E5E5">
+                    <DataGrid x:Name="IO" HorizontalAlignment="Left" CanUserAddRows="false" Margin="10,0,0,10" Width="408" SelectionChanged="IO_SelectionChanged">
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="ON">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Name="btnEdit" Content="ON" Click="IO_Click" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn Header="OFF">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Name="btnDelete" Content="OFF" Click="IO_off_Click" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="BlackBoxes"  >
+
+                <Grid Background="#FFE5E5E5">
+                    <Button x:Name="BB" Content="Get BlackBoxes" HorizontalAlignment="Left" Margin="673,10,0,0" VerticalAlignment="Top" Width="104" Click="Button_Click_1" Height="23"/>
+                    <ListView x:Name="bbview" HorizontalAlignment="Left" Height="733" VerticalAlignment="Top" Width="646" MouseDoubleClick="changeBackground">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <Label Content="BlacBox directory :" HorizontalAlignment="Left" Margin="798,8,0,0" VerticalAlignment="Top"/>
+                    <Label x:Name="loc" Content="&quot;&quot;" HorizontalAlignment="Left" Margin="901,8,0,0" VerticalAlignment="Top"/>
+                    <Button x:Name="Opendir" Content="Open BB Folder" HorizontalAlignment="Left" Margin="797,39,0,0" VerticalAlignment="Top" Width="104" Click="opendir_Click_1" Height="23"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="WMS"  Margin="-2,-2,-2,0"  >
+
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="14*"/>
+                        <ColumnDefinition Width="6*"/>
+                        <ColumnDefinition Width="189*"/>
+                        <ColumnDefinition Width="989*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="A1P1" Content="A1P1" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A1P2" Content="A1P2" HorizontalAlignment="Left" Margin="51,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A1P3" Content="A1P3" HorizontalAlignment="Left" Margin="96,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P1" Content="A2P1" HorizontalAlignment="Left" Margin="6,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P2" Content="A2P2" HorizontalAlignment="Left" Margin="51,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P3" Content="A2P3" HorizontalAlignment="Left" Margin="96,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="C1" Content="C1" HorizontalAlignment="Left" Margin="238,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
+                    <Button x:Name="C2" Content="C2" HorizontalAlignment="Left" Margin="238,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
+                    <Button x:Name="A2P3_Copy" Content="A2P3" HorizontalAlignment="Left" Margin="31,165,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="webhook1" Header="Webhook"  Margin="-2,-2,-2,0"  >
+
+                <Grid Background="#FFE5E5E5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="15*"/>
+                        <ColumnDefinition Width="171*"/>
+                        <ColumnDefinition Width="1012*"/>
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="BB1" Content="start server 2" HorizontalAlignment="Left" Margin="487,10,0,0" VerticalAlignment="Top" Width="104" Click="Button_Click_server" Height="23" Grid.Column="2"/>
+                    <ListView x:Name="bbview1" HorizontalAlignment="Left" Height="733" VerticalAlignment="Top" Width="646" MouseDoubleClick="changeBackground" Grid.ColumnSpan="3" Margin="0,0,0,-4">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <Label Content="webserver adress" HorizontalAlignment="Left" Margin="612,8,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+                    <TextBox x:Name="Ip_host_web_Copy" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://*:8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="748,12,0,0" Grid.Column="2"/>
+                    <CheckBox x:Name="forward1" Content="Forward enable" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="forward_Checked" Height="15" Width="106" Unchecked="weback_Checked" IsChecked="True" Margin="591,97,0,0" Grid.Column="2"/>
+                    <Button x:Name="test" Content="test" Grid.Column="2" HorizontalAlignment="Left" Margin="516,68,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+                    <TextBox x:Name="Ip_host_web_sent" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://localhost:8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="748,38,0,0" Grid.Column="2"/>
+                    <Label Content="redirect adresse" HorizontalAlignment="Left" Margin="612,33,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+                </Grid>
+            </TabItem>
+
+
+
+        </TabControl>
     </Grid>
 </Window>

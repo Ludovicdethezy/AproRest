@@ -29,7 +29,7 @@ namespace AproRest
             _settings = new System.Lazy<Newtonsoft.Json.JsonSerializerSettings>(CreateSerializerSettings);
         }
     
-        private Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
+        public Newtonsoft.Json.JsonSerializerSettings CreateSerializerSettings()
         {
             var settings = new Newtonsoft.Json.JsonSerializerSettings();
             UpdateJsonSerializerSettings(settings);
@@ -360,7 +360,129 @@ namespace AproRest
                     client_.Dispose();
             }
         }
-    
+
+        public System.Threading.Tasks.Task<UtilityOrderDefinition> OrdersUAsync(UtilityOrderDefinition body, string orderId)
+        {
+            return OrdersUAsync(body, orderId, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>Start or edit transport order</summary>
+        /// <param name="body">Transport unit type and order id cannot be changed after order has started. Step information can only be edited on steps that are not finished and are not performing load handling operation. Also, the edited transport order must match to the same transport order workflow selection rule as the original transport order. For example, if some storage locations are configured to a special workflow that takes the unit to a wrapping station before storage the new address must match to the same rule.</param>
+        /// <param name="orderId">Transport order id that was given by WMS in start request.</param>
+        /// <returns>The transport order was updated successfully</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public async System.Threading.Tasks.Task<UtilityOrderDefinition> OrdersUAsync(UtilityOrderDefinition body, string orderId, System.Threading.CancellationToken cancellationToken)
+        {
+            if (orderId == null)
+                throw new System.ArgumentNullException("orderId");
+
+            if (body == null)
+                throw new System.ArgumentNullException("body");
+
+            var urlBuilder_ = new System.Text.StringBuilder();
+            urlBuilder_.Append(BaseUrl != null ? BaseUrl.TrimEnd('/') : "").Append("/orders/{orderId}");
+            urlBuilder_.Replace("{orderId}", System.Uri.EscapeDataString(ConvertToString(orderId, System.Globalization.CultureInfo.InvariantCulture)));
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var content_ = new System.Net.Http.StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(body, _settings.Value));
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("PUT");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = System.Linq.Enumerable.ToDictionary(response_.Headers, h_ => h_.Key, h_ => h_.Value);
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<UtilityOrderDefinition>(response_, headers_).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 201)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<UtilityOrderDefinition>(response_, headers_).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("Request was badly formatted or contained invalid data.\n", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 401)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("Required OAuth2 token is missing or invalid.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 403)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("OAuth2 token did not contain required rule claim.", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("Not found. WMS tried to edit order which had ended.  WMS can use this request only to start new orders with new transport_order_id and update running orders. If an order with provided transport_order_id exists but has already ended, 404 is returned.      \n", status_, responseText_, headers_, null);
+                        }
+                        else
+                        if (status_ == 409)
+                        {
+                            string responseText_ = (response_.Content == null) ? string.Empty : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("WMS tried to edit field that cannot be edited. <br> This can be because the state of an operation have changed or because the updated transport order would not match to the same transport order rule.\n\nAlternatively, WMS tried to change between start_time and end_time requirements of a started order or mix start_time and end_time requirements within same constraint group.\n", status_, responseText_, headers_, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
         /// <summary>Cancel transport order</summary>
         /// <param name="safe">Cancel the order only if it can be done safely. This means that the AGV has not yet started to pick up a load.
         /// 
@@ -1651,7 +1773,59 @@ namespace AproRest
     
     
     }
-    
+
+    public partial class UtilityOrderDefinition
+    {
+        /// <summary>WMS selected custom string to identify the transport order. Transport order ids must be unique. Use of universally unique identifiers (UUID) is strongly recommended.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("utility_order_id", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        public string Utility_order_id { get; set; }
+
+        /// <summary>The kind of unit type the AGV is transporting.</summary>
+        [Newtonsoft.Json.JsonProperty("order_type", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Order_type { get; set; }
+
+        /// <summary>A deadline for starting the transport order. Must be UTC timestamp. Either start_time or end_time can be provided, but not both. A default end_time is used if both are empty.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("start_time", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.String Start_time { get; set; }
+
+        /// <summary>A deadline for finishing the transport order. Must be UTC timestamp. Either start_time or end_time can be provided, but not both. A default end_time is used if both are empty.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("end_time", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.DateTimeOffset End_time { get; set; }
+
+        /// <summary>Custom project specific data. Original contents for the data object is provided by WMS when it starts the order. Both WMS and FleetController can edit the values held in custom_data  while the order is running. The current values of the data are included in every transport order event. The object can only contain string and number values.
+        /// 
+        /// When WMS posts an update for the transport order definition and the update does not contain custom_data field or contains custom_data field with value null, the content of the custom_data field is not changed. If the WMS provides the custom_data field in an update request, custom_data keys that are included with non-null value are updated and the custom_data keys that are included with null value are removed.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("custom_data", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public object Custom_data { get; set; }
+
+        /// <summary>Operations this order is wanted to perform, in order they are executed. In received events the step indexing starts with 0. So the first step has step_index 0, second has step_index 1, etc.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("steps", Required = Newtonsoft.Json.Required.Always)]
+        [System.ComponentModel.DataAnnotations.Required]
+        public System.Collections.Generic.ICollection<TransportOrderStep> Steps { get; set; } = new System.Collections.ObjectModel.Collection<TransportOrderStep>();
+
+        /// <summary>True, if TransportOrderSteps does not contain all of the steps yet. The transport order source should change this false when the last step is send. If all of the steps are known when the order is started,  it is recommended to provide all of them and give true here.  FleetController can optimize order execution better if it knows all steps of the order.
+        /// </summary>
+        [Newtonsoft.Json.JsonProperty("partial_steps", Required = Newtonsoft.Json.Required.Always)]
+        public bool Partial_steps { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties = new System.Collections.Generic.Dictionary<string, object>();
+
+        [Newtonsoft.Json.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties; }
+            set { _additionalProperties = value; }
+        }
+
+
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.2.1.0 (Newtonsoft.Json v11.0.0.0)")]
     public partial class TransportOrderStep 
     {

@@ -61,10 +61,24 @@ namespace AproRest
         public int ev_id = 0;
         public string stoid;
         public string sever2_adress;
+        private string loca_serv2_adress;
         public string forward_adress;
 
         Thread c;
+        Thread d;
         private bool forward_enable;
+        private bool web2 = false;
+        private string ip_host_webhooks = "http://+:8001";
+        private string loca_ip_host_webbhooks;
+        private string ip_visu_webhooks;
+        private string test_ip;
+
+        public string Loca_test_ip { get; private set; }
+
+        private bool test2;
+        private string test_server_ips;
+        private bool enablevisu;
+        private string loca_ip_visu_webbhooks;
 
         public class custom_dataC
         {
@@ -111,7 +125,7 @@ namespace AproRest
             }
         }
 
-
+       
 
 
 
@@ -379,15 +393,15 @@ namespace AproRest
 
             return to;
         }
-    
-        private TransportOrderDefinition createTO_const(string fetch, string deliver,int delay, string cid, int numid, string Area)
+
+        private TransportOrderDefinition createTO_const(string fetch, string deliver, int delay, string cid, int numid, string Area)
         {
 
             TransportOrderStep stp1 = new TransportOrderStep
             {
                 Operation_type = "Drop",
                 Addresses = new string[] { deliver }
-                
+
             };
 
             TransportOrderStep stp0 = new TransportOrderStep
@@ -395,7 +409,7 @@ namespace AproRest
                 Operation_type = "Pick",
                 Addresses = new string[] { fetch },
                 Constraint_group_id = cid,
-                Constraint_group_index = numid 
+                Constraint_group_index = numid
             };
 
             custom_dataC custom = new custom_dataC
@@ -585,6 +599,145 @@ namespace AproRest
             return to;
         }
 
+         private TransportOrderDefinition createTO4_const(string fetch, string deliver, string fetch2, string deliver2, int delay, string cid, int numid, string Area)
+        {
+
+            TransportOrderStep stp1 = new TransportOrderStep
+            {
+                Operation_type = "Drop",
+                Addresses = new string[] { deliver }
+
+            };
+
+            TransportOrderStep stp2 = new TransportOrderStep
+            {
+                Operation_type = "Pick",
+                Addresses = new string[] { fetch2 }
+
+            };
+            TransportOrderStep stp3 = new TransportOrderStep
+            {
+                Operation_type = "Drop",
+                Addresses = new string[] { deliver2 }
+
+            };
+            TransportOrderStep stp0 = new TransportOrderStep
+            {
+                Operation_type = "Pick",
+                Addresses = new string[] { fetch },
+
+            };
+
+
+            if (numid > 0) {
+
+
+                stp0.Constraint_group_id = cid;
+                    stp0.Constraint_group_index = numid;
+
+               
+            }
+           
+
+            
+
+            custom_dataC custom = new custom_dataC
+            {
+                LoadWeight = "0",
+                LoadDimensionX = "0",
+                LoadDimensionY = "0",
+                FetchHeight = "0",
+                DeliverHeight = "0",
+                FetchAddress = fetch,
+                DeliverAddress = deliver,
+                AGV = "0",
+                Area = Area,
+                Sequence = numid
+            };
+
+
+            var to = new TransportOrderDefinition
+            {
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString(),
+                Transport_unit_type = "Palett",
+                Start_time = null,
+                End_time = DateTimeOffset.UtcNow.AddMinutes(delay),
+                Custom_data = custom,
+                Steps = new TransportOrderStep[] { stp0, stp1, stp2, stp3 },
+                Partial_steps = false,
+            };
+
+
+
+            string connectionString = Connect_string;
+
+            string CmdText;
+            SqlParameter SqlPrmtr;
+            List<SqlParameter> PrmtrList;
+
+
+
+            CmdText = " INSERT INTO orderbuffer" +
+
+                "([transport_order_id],[fetch_address],[fetch_height] ,[deliver_address],[deliver_height],[LoadDimensionX],[LoadDimensionY],[LoadWeight],[CreatedAt],[Sent],[pallet_type]) " +
+
+                "VALUES (@transport_order_id,@fetch_address,@fetch_height, @deliver_address,@deliver_height,@LoadDimensionX,@LoadDimensionY,@LoadWeight,@CreatedAt,@Sent,@pallet_type)";
+
+            PrmtrList = new List<SqlParameter>();
+
+            SqlPrmtr = new SqlParameter("@transport_order_id", SqlDbType.VarChar);
+            SqlPrmtr.Value = to.Transport_order_id;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.FetchAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.FetchHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.DeliverAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.DeliverHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionX", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionX); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionY", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionY); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadWeight", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadWeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@CreatedAt", SqlDbType.DateTimeOffset);
+            SqlPrmtr.Value = DateTimeOffset.UtcNow;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@Sent", SqlDbType.TinyInt);
+            SqlPrmtr.Value = 1;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@pallet_type", SqlDbType.VarChar);
+            SqlPrmtr.Value = "Palett";
+            PrmtrList.Add(SqlPrmtr);
+
+            InsertIntoSql(CmdText, PrmtrList, "new order added");
+
+
+
+            return to;
+        }
+
+       
+
 
         private UtilityOrderDefinition NewUtilityTO()
         {
@@ -640,7 +793,7 @@ namespace AproRest
                 try
                 {
 
-                    if (comok == true && autoack == true)
+                    if (comok == true )
                     {
 
                         var x = sys.EventsAllAsync(10, true, 0, null).GetAwaiter().GetResult();
@@ -674,12 +827,18 @@ namespace AproRest
                                     this.log2.Items.Add(" - t_id : " + value2.ToString() + " waiting ack for adresse: " + value.ToString() + ", step: " + value3.ToString() + "  ,status: " + status_op.ToString() + "  ,error: " + er);
 
                                 }));
-                                sys.ContinueAsync(value2.ToString(), item.Event_id);
-                                Console.WriteLine(" ack operation envoyé ");
-                                Dispatcher.Invoke(new InvokeDelegate(() =>
+                               
+                                //MainWindow.updatedb(To_id, DateTimeOffset.Parse(start_time), status, int.Parse(Ev_id));
+                               // MainWindow.updatedb(value2.ToString(), value4.ToString(), "AGV waiting fetched ack", int.Parse(Ev_id));
+                                if (autoack == true)
                                 {
-                                    this.log2.Items.Add(" * t_id : " + value2.ToString() + " ack sent for adresse: " + value.ToString() + ", step: " + value3.ToString());
-                                }));
+                                    sys.ContinueAsync(value2.ToString(), item.Event_id);
+                                    Console.WriteLine(" ack operation envoyé ");
+                                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                                    {
+                                        this.log2.Items.Add(" * t_id : " + value2.ToString() + " ack sent for adresse: " + value.ToString() + ", step: " + value3.ToString());
+                                    }));
+                                }
                                 SqlCommand command = new SqlCommand();
 
                                 string CmdText;
@@ -774,6 +933,8 @@ namespace AproRest
                                 {
                                     this.log2.Items.Add(" * t_id : " + value2.ToString() + " waiting preload ack : adress: " + value.ToString() + ", step: " + value3.ToString());
                                 }));
+                                if (autoack == true)
+                                { 
                                 sys.ContinueAsync(value2.ToString(), item.Event_id);
                                 Console.WriteLine(" ack arrivé envoyé ");
                                 Dispatcher.Invoke(new InvokeDelegate(() =>
@@ -781,7 +942,7 @@ namespace AproRest
                                     this.log2.Items.Add(" - t_id : " + value2.ToString() + " preload ack sent : adress: " + value.ToString() + " , step: " + value3.ToString());
                                     //  this.log.Items[this.log.Items.Count - 1].Background = Brushes.LimeGreen
                                 }));
-
+                            }
                                 string CmdText;
                                 SqlParameter SqlPrmtr;
                                 List<SqlParameter> PrmtrList;
@@ -950,18 +1111,18 @@ namespace AproRest
                             }
                         }
                         insert_agv();
-                        refresh_orderDG();
+                        //refresh_orderDG();
 
 
                     }
                     catch (HttpRequestException)
                     {
                         // MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
-                       // Console.WriteLine(" Problem with event thread : {0}", ex.Message.ToString());
+                        // Console.WriteLine(" Problem with event thread : {0}", ex.Message.ToString());
                         Dispatcher.Invoke(new InvokeDelegate(() =>
                         {
                             status.Content = "Server : " + "no connection" + "  |  system name : " + "no system | error ip ";
-                            this.log2.Items.Add(" Problem with event thread : {0} " + " no connection IP "+ sys.BaseUrl.ToString());
+                            this.log2.Items.Add(" Problem with event thread : {0} " + " no connection IP " + sys.BaseUrl.ToString());
                             status.Background = Brushes.OrangeRed;
                         }));
                     }
@@ -998,7 +1159,7 @@ namespace AproRest
 
 
 
-        public void insert_agv()
+        public  void insert_agv()
         {
             string CmdText;
 
@@ -1018,153 +1179,153 @@ namespace AproRest
             try
             {
 
-            
 
-            var x3 = svisu.AgvsAllAsync().GetAwaiter().GetResult();
 
-            foreach (visu.AgvState agvState in x3)
-            {
-                // Console.WriteLine("{0} loaded {1} ", agvState.Id, agvState.Loaded1);
+                var x3 = svisu.AgvsAllAsync().GetAwaiter().GetResult();
 
-                try
+                foreach (visu.AgvState agvState in x3)
                 {
-                    using (SqlConnection connection2 = new SqlConnection(connectionString))
-                    {
-                        connection2.Open();
-                        SqlCommand cmd2 = new SqlCommand(" DELETE FROM agvs WHERE agv_id = " + agvState.Id + " ", connection2);
-                        var exist = cmd2.ExecuteNonQuery();
-                        connection2.Close();
+                    // Console.WriteLine("{0} loaded {1} ", agvState.Id, agvState.Loaded1);
 
+                    try
+                    {
+                        using (SqlConnection connection2 = new SqlConnection(connectionString))
+                        {
+                            connection2.Open();
+                            SqlCommand cmd2 = new SqlCommand(" DELETE FROM agvs WHERE agv_id = " + agvState.Id + " ", connection2);
+                            var exist = cmd2.ExecuteNonQuery();
+                            connection2.Close();
+
+
+                        }
+                    }
+                    catch (InvalidCastException ex)
+                    {
+                        Console.WriteLine("ERREUR COMMANDE ...");
+                        Console.WriteLine(ex.Message.ToString());
+                        // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+
+                        throw ex;
+                        // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
+                        // lequel cette fonction est appelée et déclenchera le catch
+                    }
+                    catch (SqlException ex)
+                    {
+                        Console.WriteLine("ERREUR DE CONNEXION ...");
+                        Console.WriteLine(ex.Message.ToString());
+                        // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
+
+                        throw ex;
+                    }
+                    catch (HttpRequestException)
+                    {
+                        // MessageBox.Show("fleet controller not running or connection to " + svisu.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
+
+
+                    CmdText = "INSERT INTO agvs" +
+
+                        "([agv_id],[type_name],[state],[loaded1],[ems_auto],[ems_man],[user_stop],[blocked_by_agv],[blocked_by_IO],[error],[battery_state],[low_battery],[current_order]) " +
+
+                        "VALUES (@agv_id,@type_name,@state ,@loaded1,@ems_auto,@ems_man,@user_stop,@blocked_by_agv,@blocked_by_IO,@error,@battery_state,@low_battery,@current_order)";
+
+                    PrmtrList = new List<SqlParameter>();
+
+                    SqlPrmtr = new SqlParameter("@agv_id", SqlDbType.Int);
+                    SqlPrmtr.Value = agvState.Id;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@type_name", SqlDbType.VarChar);
+                    SqlPrmtr.Value = agvState.Type_name;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@state", SqlDbType.VarChar);
+                    SqlPrmtr.Value = agvState.State;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@loaded1", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Loaded1;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@ems_auto", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Emergency_stop_auto_reset;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@ems_man", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Emergency_stop_manual_reset;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@user_stop", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.User_stop;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@blocked_by_agv", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Blocked_by_agv;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@blocked_by_IO", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Blocked_by_io;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@error", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Blocked_by_io;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@battery_state", SqlDbType.Int);
+                    SqlPrmtr.Value = agvState.Battery_state;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@low_battery", SqlDbType.Bit);
+                    SqlPrmtr.Value = agvState.Low_battery;
+                    PrmtrList.Add(SqlPrmtr);
+
+                    SqlPrmtr = new SqlParameter("@current_order", SqlDbType.VarChar);
+                    if (agvState.Current_order == null)
+                        SqlPrmtr.Value = "";
+                    else
+                        SqlPrmtr.Value = agvState.Current_order;
+
+                    PrmtrList.Add(SqlPrmtr);
+
+
+                    InsertIntoSql(CmdText, PrmtrList, "AGV added");
+
+
+                    var x4 = svisu.OrdersAllAsync().GetAwaiter().GetResult();
+                    foreach (visu.OrderState orderstate in x4)
+                    {
+                        int curagv2 = 0;
+                        foreach (int curagv in orderstate.Current_agvs)
+                        {
+                            //updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv);
+                            curagv2 = curagv;
+                        }
+                        if (orderstate.Estimated_finish_time != null)
+                            updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv2, 0);
 
                     }
                 }
-                catch (InvalidCastException ex)
+
+                using (SqlConnection connection2 = new SqlConnection(connectionString))
                 {
-                    Console.WriteLine("ERREUR COMMANDE ...");
-                    Console.WriteLine(ex.Message.ToString());
-                    // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+                    connection2.Open();
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
+                    SqlDataAdapter sda = new SqlDataAdapter(cmd);
+                    DataSet ds = new DataSet();
+                    sda.Fill(ds);
 
-                    throw ex;
-                    // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
-                    // lequel cette fonction est appelée et déclenchera le catch
-                }
-                catch (SqlException ex)
-                {
-                    Console.WriteLine("ERREUR DE CONNEXION ...");
-                    Console.WriteLine(ex.Message.ToString());
-                    // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
-
-                    throw ex;
-                }
-                catch (HttpRequestException)
-                {
-                   // MessageBox.Show("fleet controller not running or connection to " + svisu.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-
-
-
-                CmdText = "INSERT INTO agvs" +
-
-                    "([agv_id],[type_name],[state],[loaded1],[ems_auto],[ems_man],[user_stop],[blocked_by_agv],[blocked_by_IO],[error],[battery_state],[low_battery],[current_order]) " +
-
-                    "VALUES (@agv_id,@type_name,@state ,@loaded1,@ems_auto,@ems_man,@user_stop,@blocked_by_agv,@blocked_by_IO,@error,@battery_state,@low_battery,@current_order)";
-
-                PrmtrList = new List<SqlParameter>();
-
-                SqlPrmtr = new SqlParameter("@agv_id", SqlDbType.Int);
-                SqlPrmtr.Value = agvState.Id;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@type_name", SqlDbType.VarChar);
-                SqlPrmtr.Value = agvState.Type_name;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@state", SqlDbType.VarChar);
-                SqlPrmtr.Value = agvState.State;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@loaded1", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Loaded1;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@ems_auto", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Emergency_stop_auto_reset;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@ems_man", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Emergency_stop_manual_reset;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@user_stop", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.User_stop;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@blocked_by_agv", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Blocked_by_agv;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@blocked_by_IO", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Blocked_by_io;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@error", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Blocked_by_io;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@battery_state", SqlDbType.Int);
-                SqlPrmtr.Value = agvState.Battery_state;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@low_battery", SqlDbType.Bit);
-                SqlPrmtr.Value = agvState.Low_battery;
-                PrmtrList.Add(SqlPrmtr);
-
-                SqlPrmtr = new SqlParameter("@current_order", SqlDbType.VarChar);
-                if (agvState.Current_order == null)
-                    SqlPrmtr.Value = "";
-                else
-                    SqlPrmtr.Value = agvState.Current_order;
-
-                PrmtrList.Add(SqlPrmtr);
-
-
-                InsertIntoSql(CmdText, PrmtrList, "AGV added");
-
-
-                var x4 = svisu.OrdersAllAsync().GetAwaiter().GetResult();
-                foreach (visu.OrderState orderstate in x4)
-                {
-                    int curagv2 = 0;
-                    foreach (int curagv in orderstate.Current_agvs)
+                    Dispatcher.Invoke(new InvokeDelegate(() =>
                     {
-                        //updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv);
-                        curagv2 = curagv;
-                    }
-                    if (orderstate.Estimated_finish_time != null)
-                        updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv2, 0);
-
-                }
-            }
-
-            using (SqlConnection connection2 = new SqlConnection(connectionString))
-            {
-                connection2.Open();
-                SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
-                SqlDataAdapter sda = new SqlDataAdapter(cmd);
-                DataSet ds = new DataSet();
-                sda.Fill(ds);
-
-                Dispatcher.Invoke(new InvokeDelegate(() =>
-                {
-                    status_db.Content = "Data refresh to db";
-                    status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
-                    agv.ItemsSource = ds.Tables[0].DefaultView;
+                        status_db.Content = "Data refresh to db";
+                        status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
+                        agv.ItemsSource = ds.Tables[0].DefaultView;
                     //  this.order_list.Resources["columnForeground"] = Brushes.Red;
 
                 }));
 
 
-            }
+                }
 
             }
             catch (HttpRequestException)
@@ -1202,97 +1363,204 @@ namespace AproRest
         {
             string connectionString = Connect_string;
             DataSet ds = new DataSet();
-            //    DataSet ds2 = new DataSet();
-            try
-            {
+         
 
-
-                using (SqlConnection connection2 = new SqlConnection(connectionString))
+                //    DataSet ds2 = new DataSet();
+                try
                 {
 
-                    try
+
+                    using (SqlConnection connection2 = new SqlConnection(connectionString))
                     {
-                        connection2.Open();
-                        string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
-                            "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
-                            "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
-                            " ,[Sent],ack_event ,agv,pallet_type, error FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
 
-
-
-                        SqlCommand cmd = new SqlCommand(str, connection2);
-
-                        SqlDataAdapter sda = new SqlDataAdapter(cmd);
-
-                        // sda.SelectCommand = cmd;
-                        sda.Fill(ds);
-                        //str = "SELECT  * FROM IO ";
-                        // cmd = new SqlCommand(str, connection2);
-                        // SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
-                        // sda2.Fill(ds2);
-
-
-                        cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
-                        SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
-                        DataSet ds2 = new DataSet();
-                        sda2.Fill(ds2);
-
-
-
-
-                        //  this.order_list.Resources["columnForeground"] = Brushes.Red;
-
-
-
-
-
-
-
-
-                        Dispatcher.Invoke(new InvokeDelegate(() =>
+                        try
                         {
-                            status_db.Content = "Data refresh to db";
-                            status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
-                            order_list.ItemsSource = ds.Tables[0].DefaultView;
+                            connection2.Open();
+                            string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
+                                "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
+                                "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
+                                " ,[Sent],ack_event ,agv,pallet_type, error FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
 
-                            agv.ItemsSource = ds2.Tables[0].DefaultView;
+
+
+                            SqlCommand cmd = new SqlCommand(str, connection2);
+
+                            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+                            // sda.SelectCommand = cmd;
+                            sda.Fill(ds);
+                            //str = "SELECT  * FROM IO ";
+                            // cmd = new SqlCommand(str, connection2);
+                            // SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                            // sda2.Fill(ds2);
+
+
+                            cmd = new SqlCommand("SELECT * FROM dbo.agvs order by AGVid", connection2);
+                            SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                            DataSet ds2 = new DataSet();
+                            sda2.Fill(ds2);
+
+
+
+
+                            //  this.order_list.Resources["columnForeground"] = Brushes.Red;
+
+
+
+
+
+
+
+
+                            Dispatcher.Invoke(new InvokeDelegate(() =>
+                            {
+                                status_db.Content = "Data refresh to db";
+                                status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
+                                order_list.ItemsSource = ds.Tables[0].DefaultView;
+
+                                agv.ItemsSource = ds2.Tables[0].DefaultView;
                             //  this.order_list.Resources["columnForeground"] = Brushes.Red;
 
                         }));
+                        }
+                        catch
+                        { }
+
+
+
+                        connection2.Close();
                     }
-                    catch
-                    { }
-
-
-
-                    connection2.Close();
                 }
-            }
-            catch (InvalidCastException ex)
-            {
-                Console.WriteLine("ERREUR COMMANDE ...");
-                Console.WriteLine(ex.Message.ToString());
-                // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+                catch (InvalidCastException ex)
+                {
+                    Console.WriteLine("ERREUR COMMANDE ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR COMMANDE ... " + ex.Message);
 
-                throw ex;
-                // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
-                // lequel cette fonction est appelée et déclenchera le catch
-            }
-            catch (SqlException ex)
-            {
-                Console.WriteLine("ERREUR DE CONNEXION ...");
-                Console.WriteLine(ex.Message.ToString());
-                // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
+                    throw ex;
+                    // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
+                    // lequel cette fonction est appelée et déclenchera le catch
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine("ERREUR DE CONNEXION ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
 
-                throw ex;
-            }
-            catch (InvalidOperationException ex)
-            {
-                Console.WriteLine("ERREUR ECRITURE ...");
-                Console.WriteLine(ex.Message.ToString());
-                // WriteLog("ERREUR ECRITURE ... " + ex.Message);
+                    throw ex;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine("ERREUR ECRITURE ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR ECRITURE ... " + ex.Message);
 
-                throw ex;
+                    throw ex;
+                }
+            
+
+        }
+
+        public void trefresh_orderDG()
+        {
+            string connectionString = Connect_string;
+          
+            while (true)
+            {
+                Thread.Sleep(5000);
+
+                //    DataSet ds2 = new DataSet();
+                try
+                {
+
+
+                    using (SqlConnection connection2 = new SqlConnection(connectionString))
+                    {
+
+                        try
+                        {
+                            connection2.Open();
+                            string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
+                                "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
+                                "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
+                                " ,[Sent],ack_event ,agv,pallet_type, error FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
+
+
+                            DataSet ds = new DataSet();
+                            SqlCommand cmd = new SqlCommand(str, connection2);
+
+                            SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+                            // sda.SelectCommand = cmd;
+                            sda.Fill(ds);
+                            //str = "SELECT  * FROM IO ";
+                            // cmd = new SqlCommand(str, connection2);
+                            // SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                            // sda2.Fill(ds2);
+
+
+                            cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
+                            SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                            DataSet ds2 = new DataSet();
+                            sda2.Fill(ds2);
+
+
+
+
+                            //  this.order_list.Resources["columnForeground"] = Brushes.Red;
+
+
+
+
+
+
+
+
+                            Dispatcher.Invoke(new InvokeDelegate(() =>
+                            {
+                                status_db.Content = "Data refresh to db";
+                                status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
+                                order_list.ItemsSource = ds.Tables[0].DefaultView;
+
+                                agv.ItemsSource = ds2.Tables[0].DefaultView;
+                                //  this.order_list.Resources["columnForeground"] = Brushes.Red;
+
+                            }));
+                        }
+                        catch
+                        { }
+
+
+
+                        connection2.Close();
+                    }
+                }
+                catch (InvalidCastException ex)
+                {
+                    Console.WriteLine("ERREUR COMMANDE ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+
+                    throw ex;
+                    // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
+                    // lequel cette fonction est appelée et déclenchera le catch
+                }
+                catch (SqlException ex)
+                {
+                    Console.WriteLine("ERREUR DE CONNEXION ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
+
+                    throw ex;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Console.WriteLine("ERREUR ECRITURE ...");
+                    Console.WriteLine(ex.Message.ToString());
+                    // WriteLog("ERREUR ECRITURE ... " + ex.Message);
+
+                    throw ex;
+                }
             }
 
         }
@@ -1906,7 +2174,7 @@ namespace AproRest
             status.Content = "Server : " + "no connection" + "  |  system name : " + "no system";
             status.Background = Brushes.OrangeRed;
 
-            refresh_orderDG();
+           // refresh_orderDG();
             Thread a = new Thread(getack);
             a.IsBackground = true;
             a.Start();
@@ -1916,23 +2184,27 @@ namespace AproRest
             HttpClient client2 = new HttpClient();
             var sys = new Client(client2);
             web = false;
-            //Thread c = new Thread(server);
-            //c.IsBackground = true;
-            //c.Start();
+            Thread c = new Thread(trefresh_orderDG);
+            c.IsBackground = true;
+            c.Start();
 
         }
 
 
-        void server()
+        async void serverAsync(object ipweb)
         {
+            try
+            {
+
+            
             var listener = new HttpListener();
 
-            listener.Prefixes.Add("http://+:8001/");
+            listener.Prefixes.Add(ipweb.ToString());
 
             listener.Start();
-            insert_agv();
+           
 
-            Console.WriteLine("Listening on port 8001...");
+            Console.WriteLine("Listening on "+ ipweb.ToString());
 
             while (true)
             {
@@ -1940,7 +2212,7 @@ namespace AproRest
 
                 Dispatcher.Invoke(new InvokeDelegate(() =>
                 {
-                    webh.Content = "Webhook : " + "Listening on port 8001..." + "  ";
+                    webh.Content = "Webhook : " + "Listening on " + ipweb.ToString();
                     webh.Background = Brushes.LimeGreen;
 
                 }));
@@ -1948,13 +2220,13 @@ namespace AproRest
                 HttpListenerRequest request = ctx.Request;
                 // Console.WriteLine($"Received request for {request.Url}");
                 string ua = request.Headers.Get("User-Agent");
-            Console.WriteLine($"{request.HttpMethod} {request.Url}");
+                Console.WriteLine($"{request.HttpMethod} {request.Url}");
 
                 var body = request.InputStream;
                 var encoding = request.ContentEncoding;
                 var reader = new StreamReader(body, encoding);
                 string s = "null";
-
+                bool ok = true;
                 if (request.HasEntityBody)
                 {
 
@@ -1972,38 +2244,64 @@ namespace AproRest
                     // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
 
                     //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
-                   if ( forward_enable)
-                    {
-                        forward(s);
-                    }
-                    
+
+
                     var dyna = JsonConvert.DeserializeObject<dynamic>(s);
                     string type = dyna.type;
-                    LocalDB.webhook_receive(dyna);
-                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                    if (type == "stop")
                     {
+                        var response2 = ctx.Response;
+                        response2.StatusCode = (int)HttpStatusCode.OK;
+                        response2.ContentType = "text/plain";
+                        response2.OutputStream.Write(new byte[] { }, 0, 0);
+                        response2.OutputStream.Close();
+                        break;
+                    }
 
-                        ListViewItem li = new ListViewItem();
-                        li.Foreground = Brushes.Green;
-                        li.Content = "Webhooks: " + type.ToString() + " " + s;
-                        this.log2.Items.Add(li);
-                        this.log2.SelectedItem = this.log2.Items.Count;
-                        webh.Background = Brushes.LightGreen;
+                   
+                    if (forward_enable)
+                    {
+                            
+                           ok= await forward(s);
+                    }
+                        Thread a = new Thread(new ParameterizedThreadStart(LocalDB.webhook_receive));
+                        a.IsBackground = true;
+                        a.Start(s);
+
+                       // LocalDB.webhook_receive(dyna);
+                        WriteMessage("Webhooks: " + type.ToString() + " " + s, Brushes.Green, log2);
+                        //Dispatcher.Invoke(new InvokeDelegate(() =>
+                        //{
+
+                        //    ListViewItem li = new ListViewItem();
+                        //    li.Foreground = Brushes.Green;
+                        //    li.Content = "Webhooks: " + type.ToString() + " " + s;
+                        //    this.log2.Items.Add(li);
+                        //    this.log2.SelectedItem = this.log2.Items.Count;
+                        //    webh.Background = Brushes.LightGreen;
 
 
-                    }));
-                    refresh_ioDG();
-                    refresh_orderDG();
+                        //}));
+                      //  refresh_ioDG();
+                    //refresh_orderDG();
                     reader.Close();
                     body.Close();
 
                 }
-                var response = ctx.Response;
-                response.StatusCode = (int)HttpStatusCode.OK;
-                response.ContentType = "text/plain";
-                response.OutputStream.Write(new byte[] { }, 0, 0);
-                response.OutputStream.Close();
+                    if (ok == false)
+                    {
 
+                        WriteMessage("REDIRECT:  TIMEOUT  " + s, Brushes.Green, bbview1);
+                    }
+                    else
+                    {
+                    var response = ctx.Response;
+                  
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        response.ContentType = "text/plain";
+                        response.OutputStream.Write(new byte[] { }, 0, 0);
+                        response.OutputStream.Close();
+                    }
 
 
                 //HttpListenerResponse resp = ctx.Response;
@@ -2015,25 +2313,176 @@ namespace AproRest
 
                 //Stream ros = resp.OutputStream;
                 //ros.Write(buffer, 0, buffer.Length);
-                if (web == false)
-                {
-                    break;
-                }
+                //if (web == false)
+                //{
+                //    break;
+                //}
             }
             listener.Stop();
             Console.WriteLine("Stop Listening on port 8001...");
             Dispatcher.Invoke(new InvokeDelegate(() =>
             {
-                webh.Content = "Webhook : " + "Stop Listening on port 8001..." + "  ";
+                webh.Content = "Webhook : " + "Stop Listening on" + ipweb.ToString();
                 webh.Background = Brushes.OrangeRed;
                 webhook.IsEnabled = true;
             }));
 
+        }
+            catch(HttpListenerException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
 
         }
 
 
-     
+        async void servervisuAsync()
+        {
+            try
+            {
+
+
+                var listener = new HttpListener();
+
+                listener.Prefixes.Add(ip_host_webhooks);
+
+                listener.Start();
+                insert_agv();
+
+                Console.WriteLine("Listening on " + ip_host_webhooks);
+
+                while (true)
+                {
+
+
+                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                    {
+                        webh.Content = "Webhook : " + "Listening on " + ip_host_webhooks;
+                        webh.Background = Brushes.LimeGreen;
+
+                    }));
+                    HttpListenerContext ctx = listener.GetContext();
+                    HttpListenerRequest request = ctx.Request;
+                    // Console.WriteLine($"Received request for {request.Url}");
+                    string ua = request.Headers.Get("User-Agent");
+                    Console.WriteLine($"{request.HttpMethod} {request.Url}");
+
+                    var body = request.InputStream;
+                    var encoding = request.ContentEncoding;
+                    var reader = new StreamReader(body, encoding);
+                    string s = "null";
+                    bool ok = true;
+                    if (request.HasEntityBody)
+                    {
+
+
+                        if (request.ContentType != null)
+                        {
+                            Console.WriteLine("Client data content type {0}", request.ContentType);
+                        }
+                        Console.WriteLine("Client data content length {0}", request.ContentLength64);
+
+                        // Console.WriteLine("Start of data:");
+                        s = reader.ReadToEnd();
+                        //Console.WriteLine(s);
+                        //Console.WriteLine("End of data:");
+                        // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+
+                        //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
+
+
+                        var dyna = JsonConvert.DeserializeObject<dynamic>(s);
+                        string type = dyna.type;
+                        if (type == "stop")
+                        {
+                            var response2 = ctx.Response;
+                            response2.StatusCode = (int)HttpStatusCode.OK;
+                            response2.ContentType = "text/plain";
+                            response2.OutputStream.Write(new byte[] { }, 0, 0);
+                            response2.OutputStream.Close();
+                            break;
+                        }
+
+
+                        if (forward_enable)
+                        {
+
+                            ok = await forward(s);
+                        }
+                        Thread a = new Thread(new ParameterizedThreadStart(LocalDB.webhook_receive));
+                        a.IsBackground = true;
+                        a.Start(s);
+
+                        // LocalDB.webhook_receive(dyna);
+                        WriteMessage("Webhooks: " + type.ToString() + " " + s, Brushes.Green, log2);
+                        //Dispatcher.Invoke(new InvokeDelegate(() =>
+                        //{
+
+                        //    ListViewItem li = new ListViewItem();
+                        //    li.Foreground = Brushes.Green;
+                        //    li.Content = "Webhooks: " + type.ToString() + " " + s;
+                        //    this.log2.Items.Add(li);
+                        //    this.log2.SelectedItem = this.log2.Items.Count;
+                        //    webh.Background = Brushes.LightGreen;
+
+
+                        //}));
+                      //  refresh_ioDG();
+                       // refresh_orderDG();
+                        reader.Close();
+                        body.Close();
+
+                    }
+                    if (ok == false)
+                    {
+
+                        WriteMessage("REDIRECT:  TIMEOUT  " + s, Brushes.Green, bbview1);
+                    }
+                    else
+                    {
+                        var response = ctx.Response;
+
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        response.ContentType = "text/plain";
+                        response.OutputStream.Write(new byte[] { }, 0, 0);
+                        response.OutputStream.Close();
+                    }
+
+
+                    //HttpListenerResponse resp = ctx.Response;
+                    //resp.Headers.Set("Content-Type", "text/plain");
+
+                    //string data = s ?? "unknown";
+                    //byte[] buffer = Encoding.UTF8.GetBytes(data);
+                    //resp.ContentLength64 = buffer.Length;
+
+                    //Stream ros = resp.OutputStream;
+                    //ros.Write(buffer, 0, buffer.Length);
+                    //if (web == false)
+                    //{
+                    //    break;
+                    //}
+                }
+                listener.Stop();
+                Console.WriteLine("Stop Listening on port 8001...");
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+                {
+                    webh.Content = "Webhook : " + "Stop Listening on" + ip_host_webhooks;
+                    webh.Background = Brushes.OrangeRed;
+                    webhook.IsEnabled = true;
+                }));
+
+            }
+            catch (HttpListenerException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+        }
 
 
 
@@ -2060,17 +2509,17 @@ namespace AproRest
             try
             {
                 if (useb == true)
-                    {
-                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, 10,area.Text,Int16.Parse(sequence.Text),area.Text);
+                {
+                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, 20, area.Text, Int16.Parse(sequence.Text), area.Text);
                     var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
                 else
                 {
-                to = NewTO(Fetch_address.Text, Deliver_address.Text, 10);
-                var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
+                    to = NewTO(Fetch_address.Text, Deliver_address.Text, 20);
+                    var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
 
-                
+
 
             }
             catch (ApiException ex)
@@ -2092,7 +2541,49 @@ namespace AproRest
 
         }
 
+        private void Start_Click4(object sender, RoutedEventArgs e)
+        {
+            HttpClient client2 = new HttpClient();
+            var sys = new Client(client2);
 
+            if (usew == true)
+                sys.BaseUrl = "http://" + WIP_host + "/api/v1/";
+            else
+                sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+
+            var to = new TransportOrderDefinition();
+
+
+            try
+            {
+              
+                {
+                    to = createTO4_const(Fetch_address1.Text, Deliver_address1.Text, Fetch_address2.Text, Deliver_address2.Text, 20, area.Text, Int16.Parse(sequence.Text), area.Text);
+                    var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
+                }
+              
+
+
+
+            }
+            catch (ApiException ex)
+            {
+                Console.WriteLine("ERREUR ordre ...{0}", to.Transport_order_id);
+                Console.WriteLine(ex.Message.ToString());
+
+                updatedb_error(to.Transport_order_id, DateTime.Now, "Error", "bad location information please check", 0);
+
+
+            }
+            catch (HttpRequestException)
+            {
+                MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            //refresh_orderDG();
+
+
+        }
 
         private void cancel_Click(object sender, RoutedEventArgs e)
         {
@@ -2359,8 +2850,19 @@ namespace AproRest
         private void Csv_loazd_Click(object sender, RoutedEventArgs e)
         {
             csv_loazd.IsEnabled = false;
+
             load_csv();
-            
+
+        }
+
+        private void Csv_loazd4_Click(object sender, RoutedEventArgs e)
+        {
+            csv_loazd4.IsEnabled = false;
+            Thread a = new Thread(load_csv4);
+            a.IsBackground = true;
+            a.Start();
+            csv_loazd4.IsEnabled = true;
+
         }
 
         // load CSV file for mutiple order 
@@ -2406,18 +2908,18 @@ namespace AproRest
                         try
                         {
                             if (dr[3].ToString() == "0")
-                          
-                            to = NewTO(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()));
+
+                                to = NewTO(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()));
                             else
                             {
-                                if( area != dr[3].ToString())
+                                if (area != dr[3].ToString())
                                 {
                                     area = dr[3].ToString();
                                     area_id = area + DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalHours.ToString();
-                            }
+                                }
                                 to = createTO_const(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()), area_id, int.Parse(dr[4].ToString()), dr[3].ToString());
                             }
-                               
+
 
                             var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
 
@@ -2431,26 +2933,142 @@ namespace AproRest
 
                         }
 
-                        refresh_orderDG();
-                        Console.WriteLine(Column1, Row1);
+                       // refresh_orderDG();
+                     //   Console.WriteLine(Column1, Row1);
                     }
 
                 }
             }
             catch (Exception ex)
             { MessageBox.Show(ex.ToString(), "load csv");
-              
+
             }
-            
-                csv_loazd.IsEnabled = true;
-           
+
+            csv_loazd.IsEnabled = true;
+
         }
-    
+
+        void load_csv4()
+        {
+            try
+            {
+                var csvTable = new DataTable();
+                HttpClient client2 = new HttpClient();
+                var sys = new Client(client2);
+                if (usew == true)
+                    sys.BaseUrl = "http://" + WIP_host + "/api/v1/";
+                else
+                    sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+                // sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+                var to = new TransportOrderDefinition();
+                var dialog = new Microsoft.Win32.OpenFileDialog();
+                dialog.FileName = "Document"; // Default file name
+                dialog.DefaultExt = ".csv"; // Default file extension
+                dialog.Filter = "Text documents (.csv)|*.csv"; // Filter files by extension
+
+                // Show open file dialog box
+                bool? result = dialog.ShowDialog();
+                string filename;
+                // Process open file dialog box results
+                if (result == true)
+                {
+                    // Open document
+                    filename = dialog.FileName;
+                    using (var csvReader = new CsvReader(new StreamReader(System.IO.File.OpenRead(filename)), true, ';'))
+                    {
+                        csvTable.Load(csvReader);
+                    }
+                    string Column1 = csvTable.Columns[0].ToString();
+                    string Row1 = csvTable.Rows[0][1].ToString();
+                    string area = "";
+                    string area_id = "";
+                    foreach (DataRow dr in csvTable.Rows)
+                    {
+                        Console.WriteLine("{0}, {1}, {2}", dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), dr[4].ToString());
+
+
+                        try
+                        {
+                           
+                                if (area != dr[5].ToString())
+                                {
+                                    area = dr[5].ToString();
+                                    area_id = area + DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalHours.ToString();
+                                }
+                                to = createTO4_const(dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), int.Parse(dr[4].ToString()), area_id, int.Parse(dr[6].ToString()), dr[5].ToString());
+                           
+
+
+                            var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
+                            Thread.Sleep(1000);
+
+                        }
+                        catch (ApiException ex)
+                        {
+                            Console.WriteLine("ERREUR ordre ...{0}", to.Transport_order_id);
+                            Console.WriteLine(ex.Message.ToString());
+
+                            updatedb_error(to.Transport_order_id, DateTime.Now, "Error " + ex.StatusCode, "wrong parameter sent to host", 0);
+
+                        }
+
+                       // refresh_orderDG();
+                        Console.WriteLine(Column1, Row1);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "load csv");
+
+            }
+
+         
+
+        }
+
+        //void csvthread(string (filename))
+        //{
+        //    using (var csvReader = new CsvReader(new StreamReader(System.IO.File.OpenRead(filename)), true, ';'))
+        //    {
+        //        csvTable.Load(csvReader);
+        //    }
+        //    string Column1 = csvTable.Columns[0].ToString();
+        //    string Row1 = csvTable.Rows[0][1].ToString();
+        //    string area = "";
+        //    string area_id = "";
+        //    foreach (DataRow dr in csvTable.Rows)
+        //    {
+        //        Console.WriteLine("{0}, {1}, {2}", dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), dr[4].ToString());
+
+
+        //        try
+        //        {
+
+        //            if (area != dr[5].ToString())
+        //            {
+        //                area = dr[5].ToString();
+        //                area_id = area + DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalHours.ToString();
+        //            }
+        //            to = createTO4_const(dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), int.Parse(dr[4].ToString()), area_id, int.Parse(dr[6].ToString()), dr[5].ToString());
 
 
 
+        //            var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
 
+        //        }
+        //        catch (ApiException ex)
+        //        {
+        //            Console.WriteLine("ERREUR ordre ...{0}", to.Transport_order_id);
+        //            Console.WriteLine(ex.Message.ToString());
 
+        //            updatedb_error(to.Transport_order_id, DateTime.Now, "Error " + ex.StatusCode, "wrong parameter sent to host", 0);
+
+        //        }
+
+        //    }
+        //}
 
         private void ip(object sender, TextChangedEventArgs e)
         {
@@ -2588,35 +3206,77 @@ namespace AproRest
 
 
 
-        private void webhook_Checked(object sender, RoutedEventArgs e)
+        private async void webhook_Checked(object sender, RoutedEventArgs e)
         {
             if (webhook.IsChecked == true)
             {
-                webhook_order.IsChecked = true;
+               // webhook_order.IsChecked = true;
                 WIP_utility = Ip_utility_web.Text;
                 WIP_host = Ip_host_web.Text;
                 IP_utility = Ip_utility.Text;
                 IP_host = Ip_host.Text;
                 WIP_visu = Ip_visu_web.Text;
                 IP_visu = Ip_visu.Text;
-                utistart();
-                forward_adress = Ip_host_web_sent.Text;
+               // utistart();
+                forward_adress = Ip_redirect_sent.Text;
+                ip_host_webhooks = "http://+:" + Ip_host_webhook.Text ;
+                loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text ;
+                ip_visu_webhooks = "http://+:" + Ip_visu_webhook.Text;
+                loca_ip_visu_webbhooks = "http://localhost:" + Ip_visu_webhook.Text;
                 web = true;
                 usew = true;
-                webh.Content = "Server : listening localhost:8001";
+                WriteMessage("Server: listening" + ip_host_webhooks, Brushes.Green, log2);
+                webh.Content = "Server : listening" + ip_host_webhooks;
                 webh.Background = Brushes.LimeGreen;
-                c = new Thread(server);
+                Thread c = new Thread(new ParameterizedThreadStart(serverAsync));
+              //  c = new Thread(serverAsync);
                 c.IsBackground = true;
-                c.Start();
+                c.Start(ip_host_webhooks);
+                if (enablevisu)
+                {
+                    Thread d = new Thread(new ParameterizedThreadStart(serverAsync));
+                    d.IsBackground = true;
+                    d.Start(ip_visu_webhooks);
+                }
 
             }
             else
             {
                 web = false;
+                {
+                    try
+                    {
+
+                        string url = loca_ip_host_webbhooks+"/visu";
+                       // forward_adress = "http://localhost:8001";
+                        HttpClient client = new HttpClient();
+                        var requestData = new { type = "stop" };
+                        string json = System.Text.Json.JsonSerializer.Serialize(requestData);
+                        var content = new StringContent(json, Encoding.UTF8, "application/json");
+                        var response = await client.PostAsync(url, content);
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                         url = loca_ip_host_webbhooks + "/order";
+                        content = new StringContent(json, Encoding.UTF8, "application/json");
+                        response = await client.PostAsync(url, content);
+                         responseContent = await response.Content.ReadAsStringAsync();
+                        //MessageBox.Show(responseContent);*
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                       // WriteMessage("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", Brushes.MediumPurple, log2);
+
+                    }
+                }
                 webhook.IsEnabled = true;
 
             }
         }
+
+
+       
+
 
         void utistart()
         {
@@ -2650,7 +3310,8 @@ namespace AproRest
             }
             catch (HttpRequestException)
             {
-                MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+                //MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+                WriteMessage("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", Brushes.MediumPurple, log2);
             }
         }
 
@@ -3049,158 +3710,504 @@ namespace AproRest
 
 
 
-        void server2()
+        async void server2Async()
         {
-            var listener = new HttpListener();
 
-            listener.Prefixes.Add(sever2_adress);
-           
-
-            listener.Start();
-
-
-            Console.WriteLine("Listening on port 8002...");
-
-            while (true)
+            try
             {
+                var listener = new HttpListener();
+
+                listener.Prefixes.Add(sever2_adress);
 
 
+                listener.Start();
 
-                HttpListenerContext ctx = listener.GetContext();
-                HttpListenerRequest request = ctx.Request;
-                // Console.WriteLine($"Received request for {request.Url}");
-                string ua = request.Headers.Get("User-Agent");
-                Console.WriteLine($"{request.HttpMethod} {request.Url}");
 
-                var body = request.InputStream;
-                var encoding = request.ContentEncoding;
-                var reader = new StreamReader(body, encoding);
-                string s = "null";
+                Console.WriteLine("Listening on port 8002...");
 
-                if (request.HasEntityBody)
+
+                //Thread thread = new Thread(() =>
+                //{
+                //    while (listener.IsListening)
+                //    {
+                while (true)
                 {
-
-
-                    if (request.ContentType != null)
+                    try
                     {
-                        Console.WriteLine("Client data content type {0}", request.ContentType);
+
+                        HttpListenerContext ctx = listener.GetContext();
+                        HttpListenerRequest request = ctx.Request;
+                        // Console.WriteLine($"Received request for {request.Url}");
+                        string ua = request.Headers.Get("User-Agent");
+                        Console.WriteLine($"{request.HttpMethod} {request.Url}");
+
+                        var body = request.InputStream;
+                        var encoding = request.ContentEncoding;
+                        var reader = new StreamReader(body, encoding);
+                        string s = "null";
+                        bool ok = false;
+                        if (request.HasEntityBody)
+                        {
+
+
+                            if (request.ContentType != null)
+                            {
+                                Console.WriteLine("Client data content type {0}", request.ContentType);
+                            }
+                            Console.WriteLine("Client data content length {0}", request.ContentLength64);
+
+                            // Console.WriteLine("Start of data:");
+                            s = reader.ReadToEnd();
+                            //Console.WriteLine(s);
+                            //Console.WriteLine("End of data:");
+                            // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+
+                            //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
+                            var dyna = JsonConvert.DeserializeObject<dynamic>(s);
+                            string type = dyna.type;
+                            if (type == "stop")
+                            {
+                                var response2 = ctx.Response;
+                                response2.StatusCode = (int)HttpStatusCode.OK;
+                                response2.ContentType = "text/plain";
+                                response2.OutputStream.Write(new byte[] { }, 0, 0);
+                                response2.OutputStream.Close();
+                                break;
+                            }
+
+
+                            ok = await forward(s);
+                            //   LocalDB.webhook_receive(dyna);
+                            WriteMessage("Redirect: " + s, Brushes.Blue, bbview1);
+
+
+                            reader.Close();
+                            body.Close();
+
+                        }
+                        if (ok == false)
+                        {
+
+                            WriteMessage("Redirect: timeout ", Brushes.Blue, bbview1);
+                        }
+                        else
+                        {
+                            var response = ctx.Response;
+                            response.StatusCode = (int)HttpStatusCode.OK;
+                            response.ContentType = "text/plain";
+                            response.OutputStream.Write(new byte[] { }, 0, 0);
+                            response.OutputStream.Close();
+                        }
                     }
-                    Console.WriteLine("Client data content length {0}", request.ContentLength64);
-
-                    // Console.WriteLine("Start of data:");
-                    s = reader.ReadToEnd();
-                    //Console.WriteLine(s);
-                    //Console.WriteLine("End of data:");
-                    // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
-
-                    //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
-                    var dyna = JsonConvert.DeserializeObject<dynamic>(s);
-                 //   string type = dyna.type;
-                    //   LocalDB.webhook_receive(dyna);
-                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                    catch (System.Net.HttpListenerException ex)
                     {
-
-                        ListViewItem li = new ListViewItem();
-                        li.Foreground = Brushes.Green;
-                        li.Content = "Webhooks: " +  s;
-                        this.bbview1.Items.Add(li);
-                        this.bbview1.SelectedItem = this.bbview1.Items.Count;
-                        webh.Background = Brushes.LightGreen;
-
-
-                    }));
-          
-                    reader.Close();
-                    body.Close();
+                        WriteMessage("Redirect: " + ex, Brushes.Blue, bbview1);
+                    }
 
                 }
-                var response = ctx.Response;
-                response.StatusCode = (int)HttpStatusCode.OK;
-                response.ContentType = "text/plain";
-                response.OutputStream.Write(new byte[] { }, 0, 0);
-                response.OutputStream.Close();
-
-
-
-                //HttpListenerResponse resp = ctx.Response;
-                //resp.Headers.Set("Content-Type", "text/plain");
-
-                //string data = s ?? "unknown";
-                //byte[] buffer = Encoding.UTF8.GetBytes(data);
-                //resp.ContentLength64 = buffer.Length;
-
-                //Stream ros = resp.OutputStream;
-                //ros.Write(buffer, 0, buffer.Length);
-                //if (web == false)
+                //});
+                //thread.Start();
+                //Console.ReadLine();
+                //while (true)
                 //{
-                //    break;
+
+
+
+
+
+
+
+                //    //HttpListenerResponse resp = ctx.Response;
+                //    //resp.Headers.Set("Content-Type", "text/plain");
+
+                //    //string data = s ?? "unknown";
+                //    //byte[] buffer = Encoding.UTF8.GetBytes(data);
+                //    //resp.ContentLength64 = buffer.Length;
+
+                //    //Stream ros = resp.OutputStream;
+                //    //ros.Write(buffer, 0, buffer.Length);
+                //    if (web2 == false)
+                //    {
+                //        break;
+                //    }
                 //}
+                listener.Stop();
+                Console.WriteLine("Stop Listening on port 8002...");
+                // web2 = true;
+                WriteMessage("Redirect: Stop Listening on: " + sever2_adress, Brushes.Blue, bbview1);
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+               {
+                   BB1.Content = "Start listenening ";
+                   BB1.Background = Brushes.LightGray;
+
+
+               }));
+                //thread.Join();
             }
-            //listener.Stop();
-            //Console.WriteLine("Stop Listening on port 8001...");
-            //Dispatcher.Invoke(new InvokeDelegate(() =>
-            //{
-            //    webh.Content = "Webhook : " + "Stop Listening on port 8001..." + "  ";
-            //    webh.Background = Brushes.OrangeRed;
-            //    webhook.IsEnabled = true;
-            //}));
-
-
+            catch (HttpListenerException ex)
+            {
+                // MessageBox.Show(ex.Message);
+                web2 = false;
+                WriteMessage("Redirect: error Listening on: " + sever2_adress, Brushes.MediumVioletRed, bbview1);
+                WriteMessage("Redirect:" + ex.Message, Brushes.MediumVioletRed, bbview1);
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+                {
+                    BB1.Content = "Start listenening ";
+                    BB1.Background = Brushes.LightGray;
+                    //ListViewItem li = new ListViewItem();
+                    //li.Content = "Redirect: Error Listening on " + sever2_adress;
+                    //this.bbview1.Items.Add(li);
+                    //    this.bbview1.ScrollIntoView(this.bbview1.Items.Count);
+                }));
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
-
-        public async void forward(string s)
+            public async Task<bool> forward(string s)
         {
             try
             {
 
                 string url = forward_adress;
                 HttpClient client = new HttpClient();
-                var requestData = new { key = "value" };
+                var requestData = new { type = "value" };
                 string json = System.Text.Json.JsonSerializer.Serialize(s);
                 var content = new StringContent(s, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(url, content);
                 string responseContent = await response.Content.ReadAsStringAsync();
                 //MessageBox.Show(responseContent);
+                return true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                //MessageBox.Show(ex.Message);
+                WriteMessage("Redirect: error while forwarding to: " + forward_adress, Brushes.MediumVioletRed, bbview1);
+                WriteMessage("Redirect:" + ex.Message, Brushes.MediumVioletRed, bbview1);
+                return false;
             }
 
         }
 
 
 
-        private async void Button_Click_2(object sender, RoutedEventArgs e)
+        private async void test_click(object sender, RoutedEventArgs e)
         {
             try
             {
-                string url = Ip_host_web_sent.Text;
-                forward_adress = Ip_host_web_sent.Text; 
+                test.IsEnabled = false;
+                string url = Ip_host_web_TEST.Text;
+               
                 HttpClient client = new HttpClient();
-                var requestData = new { key = "value" };
+                var requestData = new { type = test_text.Text };
                 string json = System.Text.Json.JsonSerializer.Serialize(requestData);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 var response = await client.PostAsync(url, content);
                 string responseContent = await response.Content.ReadAsStringAsync();
-                MessageBox.Show(responseContent);
+                //MessageBox.Show(responseContent);*
+                test.IsEnabled = true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+                test.IsEnabled = true;
+
             }
         }
 
        
 
-        private void Button_Click_server(object sender, RoutedEventArgs e)
+        private async void Button_Click_server(object sender, RoutedEventArgs e)
         {
-            sever2_adress = Ip_host_web_Copy.Text;
-               c = new Thread(server2);
-            c.IsBackground = true;
-            c.Start();
+            if (web2)
+            { 
+           try  {
+              
+                string url = loca_serv2_adress;
+              
+                HttpClient client = new HttpClient();
+                var requestData = new { type = "stop" };
+                string json = System.Text.Json.JsonSerializer.Serialize(requestData);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                var response = await client.PostAsync(url, content);
+                string responseContent = await response.Content.ReadAsStringAsync();
+                    //MessageBox.Show(responseContent);*
+                    web2 = false;
+                    //test.IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+               // MessageBox.Show(ex.Message);
+                    WriteMessage("Redirect: error stop Listening on: " + sever2_adress, Brushes.Blue, bbview1);
+                    WriteMessage("Redirect:" + ex.Message, Brushes.Blue, bbview1);
+                }
+        }
+            else
+            {
+                sever2_adress = "http://+:" + Ip_redirect_web.Text ;
+                loca_serv2_adress = "http://localhost:" + Ip_redirect_web.Text ;
+                forward_adress = Ip_redirect_sent.Text;
+                BB1.Content = " stop listening ";
+                BB1.Background = Brushes.OrangeRed;
+                WriteMessage("Redirect: start Listening on: " + sever2_adress, Brushes.Blue, bbview1);
+                
+                web2 = true;
+                c = new Thread(server2Async);
+                c.IsBackground = true;
+                c.Start();
+            }
+        }
+
+        private void Update_server_Click(object sender, RoutedEventArgs e)
+        {
+            sever2_adress = "http://+:" + Ip_redirect_web.Text;
+            loca_serv2_adress = "http://+:" + Ip_redirect_web.Text;
+
+        }
+
+        private void Update_webhook_Click(object sender, RoutedEventArgs e)
+        {
+            ip_host_webhooks ="http://+:" + Ip_host_webhook.Text ;
+            loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text ;
+            ip_visu_webhooks = "http://+:" + Ip_visu_webhook.Text;
+            loca_ip_visu_webbhooks = "http://localhost:" + Ip_visu_webhook.Text ;
+        }
+
+        private async void Start_test_Click(object sender, RoutedEventArgs e)
+        {
+            if (test2)
+            {
+                try
+                {
+
+                    string url = Loca_test_ip;
+                   
+                    HttpClient client = new HttpClient();
+                    var requestData = new { type ="stop"};
+                    string json = System.Text.Json.JsonSerializer.Serialize(requestData);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync(url, content);
+                    string responseContent = await response.Content.ReadAsStringAsync();
+                    //MessageBox.Show(responseContent);*
+                    test2 = false;
+                   // test.IsEnabled = true;
+                }
+                catch (Exception ex)
+                {
+                    //MessageBox.Show(ex.Message);
+                    WriteMessage("Test: " + ex.Message, Brushes.MediumPurple, bbview1);
+                    // test.IsEnabled = true;
+                    test2 = false;
+
+                }
+            }
+            else
+            {
+                test_ip = "http://+:" + Ip_test_server.Text;
+                Loca_test_ip = "http://localhost:" + Ip_test_server.Text ;
+                start_test.Content = "Test stop \n listening ";
+                start_test.Background = Brushes.OrangeRed;
+                WriteMessage("Test: start Listening on " + test_ip, Brushes.MediumPurple, bbview1);                                             
+                test2 = true;
+                c = new Thread(test_server);
+                c.IsBackground = true;
+                c.Start();
+            }
+        }
+
+
+
+        void test_server()
+        {
+            try
+            {
+                var listener = new HttpListener();
+
+            listener.Prefixes.Add(test_ip);
+
+
+            listener.Start();
+
+
+            Console.WriteLine("Listening on "+ test_ip);
+
+
+            //Thread thread = new Thread(() =>
+            //{
+            //    while (listener.IsListening)
+            //    {
+            while (true)
+            {
+                try
+                {
+
+                    HttpListenerContext ctx = listener.GetContext();
+                    HttpListenerRequest request = ctx.Request;
+                    // Console.WriteLine($"Received request for {request.Url}");
+                    string ua = request.Headers.Get("User-Agent");
+                    Console.WriteLine($"{request.HttpMethod} {request.Url}");
+
+                    var body = request.InputStream;
+                    var encoding = request.ContentEncoding;
+                    var reader = new StreamReader(body, encoding);
+                    string s = "null";
+
+                    if (request.HasEntityBody)
+                    {
+
+
+                        if (request.ContentType != null)
+                        {
+                            Console.WriteLine("Client data content type {0}", request.ContentType);
+                        }
+                        Console.WriteLine("Client data content length {0}", request.ContentLength64);
+
+                        // Console.WriteLine("Start of data:");
+                        s = reader.ReadToEnd();
+                        //Console.WriteLine(s);
+                        //Console.WriteLine("End of data:");
+                        // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+
+                        //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
+                        var dyna = JsonConvert.DeserializeObject<dynamic>(s);
+                        string type = dyna.type;
+                        if (type == "stop")
+                        {
+                            var response2 = ctx.Response;
+                            response2.StatusCode = (int)HttpStatusCode.OK;
+                            response2.ContentType = "text/plain";
+                            response2.OutputStream.Write(new byte[] { }, 0, 0);
+                            response2.OutputStream.Close();
+                            break;
+                        }
+
+                            //   LocalDB.webhook_receive(dyna);
+                            WriteMessage("Test: " + s, Brushes.MediumPurple, bbview1);
+                       
+
+                        reader.Close();
+                        body.Close();
+
+                    }
+
+                    var response = ctx.Response;
+                    response.StatusCode = (int)HttpStatusCode.OK;
+                    response.ContentType = "text/plain";
+                    response.OutputStream.Write(new byte[] { }, 0, 0);
+                    response.OutputStream.Close();
+                }
+                catch (System.Net.HttpListenerException ex)
+                {
+                        WriteMessage("Test: error" + ex.Message, Brushes.MediumPurple, bbview1);
+                    }
+
+            }
+            //});
+            //thread.Start();
+            //Console.ReadLine();
+            //while (true)
+            //{
+
+
+
+
+
+
+
+            //    //HttpListenerResponse resp = ctx.Response;
+            //    //resp.Headers.Set("Content-Type", "text/plain");
+
+            //    //string data = s ?? "unknown";
+            //    //byte[] buffer = Encoding.UTF8.GetBytes(data);
+            //    //resp.ContentLength64 = buffer.Length;
+
+            //    //Stream ros = resp.OutputStream;
+            //    //ros.Write(buffer, 0, buffer.Length);
+            //    if (web2 == false)
+            //    {
+            //        break;
+            //    }
+            //}
+            listener.Stop();
+            Console.WriteLine("Stop Listening on port 8002...");
+                // web2 = true;
+                WriteMessage("Test: Stop Listening on " + test_ip, Brushes.MediumPurple, bbview1);
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+            {
+                start_test.Content = "Start listenening ";
+                start_test.Background = Brushes.LightBlue;
+               
+            }));
+         
+        }
+            catch(HttpListenerException ex)
+            {
+               // MessageBox.Show(ex.Message);
+                WriteMessage("Test: Error Listening on " + test_ip, Brushes.MediumPurple, bbview1);
+                WriteMessage("Test: "+ ex.Message, Brushes.MediumPurple, bbview1);
+
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+                {
+                    start_test.Content = "Start Test \n server ";
+                    start_test.Background = Brushes.LightBlue;
+                    test2 = false;
+                    //webhook.IsEnabled = true;
+                }));
+            }
+
+}
+
+        private void Update_test_server_ip_Click(object sender, RoutedEventArgs e)
+        {
+            test_ip = "http://+:"+Ip_test_server.Text+"/";
+            Loca_test_ip = "http://localhost:" + Ip_test_server.Text + "/";
+        }
+
+        private void Update_redirect_Click(object sender, RoutedEventArgs e)
+        {
+            forward_adress = Ip_redirect_sent.Text;
+        }
+
+
+        private void WriteMessage(string message, Brush color, ListView lv)
+        {
+
+            Dispatcher.BeginInvoke(new Action(delegate
+            {
+                ListViewItem ls = new ListViewItem
+                {
+                    Foreground = color,
+                    Content = message
+                };
+                lv.Items.Add(ls);
+                lv.ScrollIntoView(lv.Items[lv.Items.Count - 1]);
+            }));
+        }
+
+        private void Start4_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Visuenable_Checked(object sender, RoutedEventArgs e)
+        {
+            if (visuenable.IsChecked ==true )
+            {
+                enablevisu = true;
+            }
+            else { enablevisu = false; }
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+           bbview1.Items.Clear();
         }
     }
-    
+
+    public class T
+    {
+        public bool ok { get; set; }
+    }
 }

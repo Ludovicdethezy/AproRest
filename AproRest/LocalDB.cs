@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System.Data;
 using AproRest;
 using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace AproRest.webhook
 {
@@ -78,8 +79,10 @@ namespace AproRest.webhook
         //    }
         //}
         public delegate void InvokeDelegate();
-        public static void webhook_receive(dynamic ev)
+        public static void webhook_receive(object dyna)
         {
+           
+            dynamic ev = JsonConvert.DeserializeObject<dynamic>(dyna.ToString());
             string type = ev.type;
             string Ev_id = ev.event_id;
             string ack = ev.waiting_acknowledgement;
@@ -230,6 +233,7 @@ namespace AproRest.webhook
              
                 case var s when type.Contains("SystemStartupEvent"):
                     {
+                        //MainWindow.insert_agv();
                         break;
                     }
                 case var s when type.Contains("TransportOrderEndEvent"):

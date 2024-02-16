@@ -238,6 +238,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Class1.cs" />
+    <Compile Include="Webhook.cs" />
     <Compile Include="LocalDB.cs" />
     <Compile Include="MyModule1.cs" />
     <Compile Include="visualization_v1.cs" />

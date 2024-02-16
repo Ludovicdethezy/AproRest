@@ -31,7 +31,8 @@
                             <ColumnDefinition Width="14"/>
                             <ColumnDefinition Width="35"/>
                             <ColumnDefinition Width="16"/>
-                            <ColumnDefinition Width="221"/>
+                            <ColumnDefinition Width="187"/>
+                            <ColumnDefinition Width="34"/>
                             <ColumnDefinition Width="707*"/>
                             <ColumnDefinition Width="205*"/>
                         </Grid.ColumnDefinitions>
@@ -51,7 +52,7 @@
                     </GridView>
                 </ListView.View>
             </ListView>-->
-                        <DataGrid x:Name="order_list" Margin="0,131,0,199" Grid.ColumnSpan="6" AutoGeneratingColumn="Agv_AutoGeneratingColumn" FontSize="11" SelectionChanged="Order_list_SelectionChanged_1" MouseDoubleClick="double_click" CanUserAddRows="false">
+                        <DataGrid x:Name="order_list" Margin="0,131,0,199" Grid.ColumnSpan="7" AutoGeneratingColumn="Agv_AutoGeneratingColumn" FontSize="11" SelectionChanged="Order_list_SelectionChanged_1" MouseDoubleClick="double_click" CanUserAddRows="false">
                             <DataGrid.Columns>
                                 <DataGridTemplateColumn Header="ACK ">
                                     <DataGridTemplateColumn.CellTemplate>
@@ -103,7 +104,7 @@
                             </DataGrid.RowStyle>
 
                         </DataGrid>
-                        <DataGrid Grid.ColumnSpan="6" x:Name="agv" Height="215" VerticalAlignment="Bottom" IsReadOnly="true" Background="LightGray" RowBackground="LightYellow" AlternatingRowBackground="LightBlue" FontSize="11" Margin="0,0,0,-5" Grid.RowSpan="4" CanUserAddRows="false">
+                        <DataGrid Grid.ColumnSpan="7" x:Name="agv" Height="215" VerticalAlignment="Bottom" IsReadOnly="true" Background="LightGray" RowBackground="LightYellow" AlternatingRowBackground="LightBlue" FontSize="11" Margin="0,0,0,-5" Grid.RowSpan="4" CanUserAddRows="false">
 
 
 
@@ -120,13 +121,13 @@
                                 </Style>
                             </DataGrid.RowStyle>
                         </DataGrid>
-                        <StatusBar RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="6" Height="42" VerticalAlignment="Bottom" Grid.Row="3" Margin="0,0,-1,-52">
+                        <StatusBar RenderTransformOrigin="0.5,0.5" Grid.ColumnSpan="7" Height="42" VerticalAlignment="Bottom" Grid.Row="3" Margin="0,0,-1,-52">
                             <Label x:Name="status" Content="Label" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="33" Width="461"/>
                             <Label x:Name="status_db" HorizontalAlignment="Left" Width="337" Grid.Row="1" Grid.Column="2" Height="33"/>
                             <Label x:Name="webh" Content="webhook" HorizontalAlignment="Left" Width="337" Height="33"/>
                         </StatusBar>
                         <Label x:Name="agvlabel" Grid.ColumnSpan="2" Content="AGVs" HorizontalAlignment="Left" Margin="0,0,0,167" Width="47" Height="26" VerticalAlignment="Bottom"/>
-                        <GroupBox x:Name="unit" Grid.Column="4" Header="Load info" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="134" BorderBrush="#FF09324B" Margin="2,0,0,0" Background="#FFE4A1A1">
+                        <GroupBox x:Name="unit" Grid.Column="5" Header="Load info" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="134" BorderBrush="#FF09324B" Margin="2,0,0,0" Background="#FFE4A1A1">
                             <Grid HorizontalAlignment="Left" Height="109" Margin="0,0,-2,-5" VerticalAlignment="Top" Width="124">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="7*"/>
@@ -143,7 +144,7 @@
                                 <Label Content="Pallet type" HorizontalAlignment="Left" Margin="3,75,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="88" Grid.ColumnSpan="2"/>
                             </Grid>
                         </GroupBox>
-                        <GroupBox Header="Order" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="286" Grid.ColumnSpan="4" BorderBrush="#FF166391" Foreground="#FF020101" Background="#FFF3C7C7">
+                        <GroupBox Header="Order" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="286" Grid.ColumnSpan="5" BorderBrush="#FF166391" Foreground="#FF020101" Background="#FFF3C7C7">
                             <Grid HorizontalAlignment="Left" Margin="0,0,-2,-1" Width="276">
                                 <TextBox x:Name="Fetch_address" HorizontalAlignment="Left" Height="20" Margin="50,0,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="105"/>
                                 <Label Content="Fetch" HorizontalAlignment="Left" Margin="1,-4,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="39"/>
@@ -162,7 +163,7 @@
                                 <Label Content="Height" HorizontalAlignment="Left" Margin="160,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
                             </Grid>
                         </GroupBox>
-                        <GroupBox x:Name="batch" Grid.Column="4" Header="Batch" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="112" BorderBrush="#FF09324B" Margin="136,0,0,0" Background="#FFE4A1A1">
+                        <GroupBox x:Name="batch" Grid.Column="5" Header="Batch" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="112" BorderBrush="#FF09324B" Margin="136,0,0,0" Background="#FFE4A1A1">
                             <Grid HorizontalAlignment="Left" Height="109" Margin="0,0,-2,-5" VerticalAlignment="Top" Width="124">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="7*"/>
@@ -183,13 +184,13 @@
                         <Grid HorizontalAlignment="Left" Height="110" VerticalAlignment="Top" Width="178" Margin="0,0,-2,-6">
                             <CheckBox x:Name="webhook" Content="Start Listening" VerticalAlignment="Top" Checked="webhook_Checked" Height="15" Unchecked="webhook_Checked" RenderTransformOrigin="1.226,0.867" Margin="0,0,72,0"/>
                             <CheckBox x:Name="webhookACK" Content="Start Auto ACK" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="weback_Checked" Height="15" Width="106" Unchecked="weback_Checked" IsChecked="True" Margin="0,15,0,0"/>
-                            <TextBox x:Name="Ip_host_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8028" VerticalAlignment="Top" Width="131" TextChanged="ip" Margin="37,44,0,0"/>
+                            <TextBox x:Name="Ip_host_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8018" VerticalAlignment="Top" Width="131" TextChanged="ip" Margin="37,44,0,0"/>
                             <TextBlock Margin="0,48,90,39"><Run Text="host"/></TextBlock>
                             <TextBlock Margin="0,67,87,20" Text="Visu"/>
-                            <TextBox x:Name="Ip_visu_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8029" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,65,0,0"/>
+                            <TextBox x:Name="Ip_visu_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8019" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,65,0,0"/>
                             <CheckBox x:Name="webhook_order" Content="use webhook for order" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="weborder_Checked" Height="15" Width="160" Unchecked="weborder_Checked" Margin="0,29,-18,0"/>
                             <TextBlock Margin="-1,88,110,7" Text="Utility"/>
-                            <TextBox x:Name="Ip_utility_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8031" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,86,0,0"/>
+                            <TextBox x:Name="Ip_utility_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="localhost:8021" VerticalAlignment="Top" Width="131" TextChanged="ip" RenderTransformOrigin="0.631,0.652" Margin="37,86,0,0"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Grid.Column="2" Header="Poll event " HorizontalAlignment="Left" Height="126" Margin="669,0,0,0" VerticalAlignment="Top" Width="185" BorderBrush="#FF0D2634" Foreground="Black" Background="#FFB7CBFF">
@@ -230,11 +231,12 @@
             <TabItem Header="Logs">
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="69*"/>
-                        <ColumnDefinition Width="532*"/>
+                        <ColumnDefinition Width="138*"/>
+                        <ColumnDefinition Width="127*"/>
+                        <ColumnDefinition Width="937*"/>
                     </Grid.ColumnDefinitions>
 
-                    <ListView x:Name="log2" Margin="0,0,-13,31" Grid.ColumnSpan="2">
+                    <ListView x:Name="log2" Margin="0,0,-13,31" Grid.ColumnSpan="3">
                         <i:Interaction.Behaviors>
                             <behaviors:ListBoxScrollIntoViewBehavior2/>
                         </i:Interaction.Behaviors>
@@ -286,7 +288,7 @@
                     <Button x:Name="Opendir" Content="Open BB Folder" HorizontalAlignment="Left" Margin="797,39,0,0" VerticalAlignment="Top" Width="104" Click="opendir_Click_1" Height="23"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="WMS"  Margin="-2,-2,-2,0"  >
+            <TabItem Header="Host expert"   >
 
                 <Grid Background="#FFE5E5E5">
                     <Grid.ColumnDefinitions>
@@ -295,39 +297,113 @@
                         <ColumnDefinition Width="189*"/>
                         <ColumnDefinition Width="989*"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="A1P1" Content="A1P1" HorizontalAlignment="Left" Margin="6,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="A1P2" Content="A1P2" HorizontalAlignment="Left" Margin="51,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="A1P3" Content="A1P3" HorizontalAlignment="Left" Margin="96,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="A2P1" Content="A2P1" HorizontalAlignment="Left" Margin="6,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="A2P2" Content="A2P2" HorizontalAlignment="Left" Margin="51,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="A2P3" Content="A2P3" HorizontalAlignment="Left" Margin="96,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
-                    <Button x:Name="C1" Content="C1" HorizontalAlignment="Left" Margin="238,39,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
-                    <Button x:Name="C2" Content="C2" HorizontalAlignment="Left" Margin="238,84,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
-                    <Button x:Name="A2P3_Copy" Content="A2P3" HorizontalAlignment="Left" Margin="31,165,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A1P1" Content="A1P1" HorizontalAlignment="Left" Margin="41,366,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A1P2" Content="A1P2" HorizontalAlignment="Left" Margin="86,366,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A1P3" Content="A1P3" HorizontalAlignment="Left" Margin="131,366,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P1" Content="A2P1" HorizontalAlignment="Left" Margin="41,411,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P2" Content="A2P2" HorizontalAlignment="Left" Margin="86,411,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="A2P3" Content="A2P3" HorizontalAlignment="Left" Margin="131,411,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <Button x:Name="C1" Content="C1" HorizontalAlignment="Left" Margin="85,392,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
+                    <Button x:Name="C2" Content="C2" HorizontalAlignment="Left" Margin="85,437,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="3"/>
+                    <Button x:Name="A2P3_Copy" Content="A2P3" HorizontalAlignment="Left" Margin="66,492,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="C1_Click" Grid.Column="2"/>
+                    <GroupBox Header="Order 4 points" HorizontalAlignment="Left" Height="126" VerticalAlignment="Top" Width="525" BorderBrush="#FF166391" Foreground="#FF020101" Background="#FFF3C7C7" Margin="10,0,0,0" Grid.ColumnSpan="4">
+                        <Grid HorizontalAlignment="Left" Margin="0,0,-12,-1" Width="525">
+                            <TextBox x:Name="Fetch_address1" HorizontalAlignment="Left" Height="20" Margin="58,0,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="97"/>
+                            <Label Content="Fetch 1" HorizontalAlignment="Left" Margin="1,-4,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="52"/>
+                            <TextBox x:Name="Fetch_Height1" HorizontalAlignment="Left" Height="20" Margin="207,0,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65" RenderTransformOrigin="0.727,0.375"/>
+                            <TextBox x:Name="Deliver_address1" HorizontalAlignment="Left" Height="20" Margin="58,25,0,0" TextWrapping="Wrap" Text="A1" VerticalAlignment="Top" Width="97"/>
+                            <Label Content="Deliver 1" HorizontalAlignment="Left" Margin="1,0,0,58" VerticalAlignment="Bottom" RenderTransformOrigin="1.105,0.962" Height="26" Width="66"/>
+                            <TextBox x:Name="Deliver_Height1" HorizontalAlignment="Left" Height="20" Margin="207,25,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="65"/>
+                            <TextBox x:Name="CWloc1" Height="20" Margin="179,50,0,0" TextWrapping="Wrap" Text="UnknownLoads" VerticalAlignment="Top"  AcceptsTab="True" HorizontalAlignment="Left" Width="93" TextChanged="Pallet_Copy_TextChanged"/>
+                            <Label Content="Carwash loc :" HorizontalAlignment="Left" Margin="88,46,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="129"/>
+                            <TextBox x:Name="AGVID1" HorizontalAlignment="Left" Height="20" Margin="53,50,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="30"/>
+                            <Label Content="AGV" HorizontalAlignment="Left" Margin="1,44,0,0" RenderTransformOrigin="1.105,0.962" Width="47" Height="26" VerticalAlignment="Top"/>
+                            <Button x:Name="start1" Content="Create order" HorizontalAlignment="Left" Margin="1,75,0,0" VerticalAlignment="Top" Width="75" Click="Start_Click4" Height="20"/>
+                            <Button x:Name="delete1" Content="Delete" HorizontalAlignment="Left" Margin="221,75,0,0" Width="51" Click="Button_Click" Height="20" VerticalAlignment="Top"/>
+                            <Button x:Name="delete_Copy2" Content="Cancel" HorizontalAlignment="Left" Margin="165,75,0,0" Width="51" Click="cancel_Click" Height="20" VerticalAlignment="Top"/>
+                            <Button x:Name="update1" Content="Update order" HorizontalAlignment="Left" Margin="83,75,0,0" VerticalAlignment="Top" Width="75" Click="Update_Click" Height="20"/>
+                            <Label Content="Height" HorizontalAlignment="Left" Margin="160,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="47"/>
+                            <TextBox x:Name="Fetch_address2" HorizontalAlignment="Left" Height="20" Margin="358,0,0,0" TextWrapping="Wrap" Text="B1" VerticalAlignment="Top" Width="109"/>
+                            <Label Content="Fetch 2" HorizontalAlignment="Left" Margin="290,-4,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="49"/>
+                            <TextBox x:Name="Deliver_address2" HorizontalAlignment="Left" Height="20" Margin="358,25,0,0" TextWrapping="Wrap" Text="A1" VerticalAlignment="Top" Width="109" RenderTransformOrigin="0.404,0.05"/>
+                            <Label Content="Deliver 2" HorizontalAlignment="Left" Margin="290,25,0,0" VerticalAlignment="Top" RenderTransformOrigin="1.105,0.962" Height="26" Width="63"/>
+                        </Grid>
+                    </GroupBox>
+                    <TextBlock TextWrapping="Wrap" Margin="95,71,793,613" Grid.Column="3"><Run Text="I"/><Run Text="mport"/><Run Text=" csv for "/><Run Text="mass "/><Run Text="order"/></TextBlock>
+                    <Button x:Name="csv_loazd4" Content="CSV" VerticalAlignment="Top" Click="Csv_loazd4_Click" HorizontalAlignment="Left" Width="76" Height="20" RenderTransformOrigin="0.237,1.5" Margin="201,82,0,0" Grid.Column="3"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="webhook1" Header="Webhook"  Margin="-2,-2,-2,0"  >
+            <TabItem x:Name="webhook1" Header="Webhook"  >
 
-                <Grid Background="#FFE5E5E5">
+                <Grid Background="#FFE5E5E5" Height="729" VerticalAlignment="Bottom">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="15*"/>
-                        <ColumnDefinition Width="171*"/>
-                        <ColumnDefinition Width="1012*"/>
+                        <ColumnDefinition Width="243*"/>
+                        <ColumnDefinition Width="571*"/>
+                        <ColumnDefinition Width="23*"/>
+                        <ColumnDefinition Width="361*"/>
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="BB1" Content="start server 2" HorizontalAlignment="Left" Margin="487,10,0,0" VerticalAlignment="Top" Width="104" Click="Button_Click_server" Height="23" Grid.Column="2"/>
-                    <ListView x:Name="bbview1" HorizontalAlignment="Left" Height="733" VerticalAlignment="Top" Width="646" MouseDoubleClick="changeBackground" Grid.ColumnSpan="3" Margin="0,0,0,-4">
+                    <ListView x:Name="bbview1" HorizontalAlignment="Left" Height="733" VerticalAlignment="Bottom" Width="646" MouseDoubleClick="changeBackground" Margin="0,0,0,-4" Grid.ColumnSpan="2">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn/>
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <Label Content="webserver adress" HorizontalAlignment="Left" Margin="612,8,0,0" VerticalAlignment="Top" Grid.Column="2"/>
-                    <TextBox x:Name="Ip_host_web_Copy" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://*:8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="748,12,0,0" Grid.Column="2"/>
-                    <CheckBox x:Name="forward1" Content="Forward enable" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="forward_Checked" Height="15" Width="106" Unchecked="weback_Checked" IsChecked="True" Margin="591,97,0,0" Grid.Column="2"/>
-                    <Button x:Name="test" Content="test" Grid.Column="2" HorizontalAlignment="Left" Margin="516,68,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
-                    <TextBox x:Name="Ip_host_web_sent" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://localhost:8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="748,38,0,0" Grid.Column="2"/>
-                    <Label Content="redirect adresse" HorizontalAlignment="Left" Margin="612,33,0,0" VerticalAlignment="Top" Grid.Column="2"/>
+                    <GroupBox Header="Host Order Webhook Receiver " HorizontalAlignment="Left" Height="133" Margin="403,143,0,0" VerticalAlignment="Top" Width="542" Background="#FFE8C0C0" Grid.ColumnSpan="3" Grid.Column="1">
+                        <Grid HorizontalAlignment="Left" Height="90" Margin="0,0,-2,-12" VerticalAlignment="Top" Width="532">
+                            <TextBox x:Name="Ip_host_webhook" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="8001/order/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="232,16,0,0"/>
+                            <Label Content="order webhook &#xA;locahost port" HorizontalAlignment="Left" Margin="135,2,0,0" VerticalAlignment="Top" Width="92" Height="39" RenderTransformOrigin="1.098,0.538"/>
+                            <Button x:Name="update_webhook" Content="Update" HorizontalAlignment="Left" Margin="461,17,0,0" VerticalAlignment="Top" Width="44" Click="Update_webhook_Click"/>
+                            <CheckBox x:Name="forward1" Content="Forward enable" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="forward_Checked" Height="15" Width="106" Unchecked="weback_Checked" Margin="95,89,0,-14" RenderTransformOrigin="1.858,-0.067"/>
+                            <TextBox x:Name="Ip_visu_webhook" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="8001/visu/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="232,47,0,0"/>
+                            <Label Content="visu webhook &#xA;locahost port" HorizontalAlignment="Left" Margin="139,41,0,0" VerticalAlignment="Top" Width="88" Height="39"/>
+                            <CheckBox x:Name="visuenable" Content="enable visu " HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Checked="Visuenable_Checked"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Test " HorizontalAlignment="Left" Height="139" Margin="408,293,0,0" VerticalAlignment="Top" Width="537" Background="#FFFFC4C4" FontStretch="ExtraExpanded" Grid.ColumnSpan="3" Grid.Column="1">
+                        <Grid HorizontalAlignment="Left" Height="107" Margin="10,10,-2,0" VerticalAlignment="Top" Width="517">
+                            <Button x:Name="test" Content="Send to test adress" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top" Width="105" Click="test_click" Height="26" TextOptions.TextFormattingMode="Display"/>
+                            <Label Content="test adress" HorizontalAlignment="Left" Margin="140,36,0,0" VerticalAlignment="Top"/>
+                            <TextBox x:Name="Ip_host_web_TEST" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://localhost:8003/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="212,40,0,0"/>
+                            <TextBox x:Name="test_text" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="test" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="212,76,0,0"/>
+                            <Label Content="test text" HorizontalAlignment="Left" Margin="140,71,0,0" VerticalAlignment="Top"/>
+                            <Label Content="test server &#xD;&#xA;adress" HorizontalAlignment="Left" Margin="123,-2,0,0" VerticalAlignment="Top" Width="70"/>
+                            <TextBox x:Name="Ip_test_server" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="8003/" VerticalAlignment="Top" Width="204" Margin="212,10,0,0"/>
+                            <Button x:Name="update_test_server_ip" Content="Update" HorizontalAlignment="Left" Margin="445,11,0,0" VerticalAlignment="Top" Width="44" Click="Update_test_server_ip_Click"/>
+                            <Button x:Name="start_test" Content="Start test &#xD;&#xA;server" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Width="86" Height="38" Click="Start_test_Click"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="Redirection server&#xD;&#xA;" HorizontalAlignment="Left" Height="138" Margin="408.5,0,0,587" VerticalAlignment="Bottom" Width="536" Background="#FF50CFCF" Grid.ColumnSpan="3" Grid.Column="1">
+                        <Grid HorizontalAlignment="Left" Height="145" VerticalAlignment="Top" Width="527" Margin="0,-9,-2,-3">
+                            <Button x:Name="BB1" Content="start redirection" HorizontalAlignment="Left" Margin="6,12,0,0" VerticalAlignment="Top" Width="92" Click="Button_Click_server" Height="42" Background="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}"/>
+                            <Label Content="redirection server&#xD;&#xA; locahost port" HorizontalAlignment="Left" Margin="149,0,0,0" VerticalAlignment="Top" Width="105" Height="44"/>
+                            <TextBox x:Name="Ip_redirect_web" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="259,14,0,0"/>
+                            <Button x:Name="update_server" Content="Update" HorizontalAlignment="Left" Margin="473,15,0,0" VerticalAlignment="Top" Width="44" RenderTransformOrigin="0.841,-5.9" Click="Update_server_Click"/>
+                            <Label Content="redirect adresse" HorizontalAlignment="Left" Margin="141,44,0,0" VerticalAlignment="Top"/>
+                            <TextBox x:Name="Ip_redirect_sent" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://localhost:8003/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="259,49,0,0"/>
+                            <CheckBox x:Name="http_answer" Content="Enable wait for Http answer" HorizontalAlignment="Left" VerticalAlignment="Top" Checked="forward_Checked" Height="15" Width="177" Unchecked="weback_Checked" Margin="31,77,0,0" RenderTransformOrigin="1.858,-0.067"/>
+                            <Button x:Name="update_redirect" Content="Update" HorizontalAlignment="Left" Margin="473,52,0,0" VerticalAlignment="Top" Width="44" RenderTransformOrigin="0.841,-5.9" Click="Update_redirect_Click"/>
+                            <TextBox x:Name="Ip_host_web_Copy1" HorizontalAlignment="Left" Height="21" TextWrapping="Wrap" Text="http://+:8002/" VerticalAlignment="Top" Width="204" TextChanged="ip" Margin="259,114,0,0"/>
+                        </Grid>
+                    </GroupBox>
+                    <Label Content="in case of error" HorizontalAlignment="Left" Margin="441,511,0,0" VerticalAlignment="Top" Width="131" Grid.ColumnSpan="2" Grid.Column="1"/>
+                    <RichTextBox HorizontalAlignment="Left" Height="100" Margin="420,542,0,0" VerticalAlignment="Top" Width="490" Grid.ColumnSpan="3" Grid.Column="1">
+                        <FlowDocument>
+                            <Paragraph>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="To run the app"/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text=" in non-admin mode. All you need to do is grant permissions to the particular URL. "/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="A tthe first use of a new port , in a console in admin mode :"/>
+                            </Paragraph>
+                            <Paragraph>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="netsh http add urlacl url="/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="http://+:80" TextDecorations="Underline"/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="01" TextDecorations="Underline"/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="/MyUri " TextDecorations="Underline"/>
+                                <Run FontSize="12.6666666666667" FontFamily="Consolas" Text="user=DOMAIN\user"/>
+                            </Paragraph>
+                        </FlowDocument>
+                    </RichTextBox>
+                    <Button Content="reset log" Grid.Column="1" HorizontalAlignment="Left" Margin="440.5,688,0,0" VerticalAlignment="Top" Width="76" Click="Button_Click_2"/>
                 </Grid>
             </TabItem>
 

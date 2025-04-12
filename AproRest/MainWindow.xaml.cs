@@ -63,6 +63,7 @@ namespace AproRest
         public string sever2_adress;
         private string loca_serv2_adress;
         public string forward_adress;
+        public string ctype = "0";
 
         Thread c;
         Thread d;
@@ -79,6 +80,30 @@ namespace AproRest
         private string test_server_ips;
         private bool enablevisu;
         private string loca_ip_visu_webbhooks;
+        public bool cfetch = false;
+        public bool cdeliver = true;
+
+        public string LoadWeigh;
+
+        public string LoadWeight { get; private set; }
+
+        public string LoadDimensionX;
+        public string LoadDimensionY;
+        public string FetchHeight;
+        public string DeliverHeight;
+
+        public string FetchAddress;
+
+        public string DeliverAddress;
+
+        public string AGV;
+        public string Area;
+        public string palett;
+
+        public int Sequence;
+        private bool useb_drop;
+        private bool auto_increment;
+        private bool use_fetch;
 
         public class custom_dataC
         {
@@ -93,10 +118,10 @@ namespace AproRest
             public string DeliverAddress { get; set; }
 
             public string AGV { get; set; }
-            public string Area { get; set; }
+            public string FetchConstraint { get; set; }
 
-            public int Sequence { get; set; }
-
+            public int FetchSequence { get; set; }
+            public object LoadType { get; internal set; }
         }
 
         public class IO_dataC
@@ -125,7 +150,7 @@ namespace AproRest
             }
         }
 
-       
+
 
 
 
@@ -217,6 +242,7 @@ namespace AproRest
                 FetchAddress = fetch,
                 DeliverAddress = deliver,
                 AGV = AGVID.Text,
+                LoadType = pallet.Text
             };
 
             var to = new TransportOrderDefinition
@@ -394,15 +420,30 @@ namespace AproRest
             return to;
         }
 
-        private TransportOrderDefinition createTO_const(string fetch, string deliver, int delay, string cid, int numid, string Area)
+        public void getinfo()
         {
+            LoadWeight = Weight.Text;
+            LoadDimensionX = DimX.Text;
+            LoadDimensionY = DimY.Text;
+            FetchHeight = Fetch_Height.Text;
+            DeliverHeight = Deliver_Height.Text;
+            palett = pallet.Text;
+            AGV = AGVID.Text;
 
-            TransportOrderStep stp1 = new TransportOrderStep
+
+        }
+
+        private TransportOrderDefinition createTO_const(string fetch, string deliver, int delay, string cid, int numid, string Area, string v)
+        {
+            string cid_drop = cid + "drop";
+            int numid_drop = numid;
+
+            if (v == "0" || v == "2")
             {
-                Operation_type = "Drop",
-                Addresses = new string[] { deliver }
+                cid = "";
+                numid = 0;
+            }
 
-            };
 
             TransportOrderStep stp0 = new TransportOrderStep
             {
@@ -412,25 +453,44 @@ namespace AproRest
                 Constraint_group_index = numid
             };
 
+            if (v == "0" || v == "1")
+            {
+                cid_drop = "";
+                numid_drop = 0;
+            }
+
+            TransportOrderStep stp1 = new TransportOrderStep
+            {
+                Operation_type = "Drop",
+                Addresses = new string[] { deliver },
+                Constraint_group_id = cid_drop,
+                Constraint_group_index = numid_drop
+
+            };
+
+
+
             custom_dataC custom = new custom_dataC
             {
-                LoadWeight = Weight.Text,
-                LoadDimensionX = DimX.Text,
-                LoadDimensionY = DimY.Text,
-                FetchHeight = Fetch_Height.Text,
-                DeliverHeight = Deliver_Height.Text,
+                LoadWeight = LoadWeight,
+                LoadDimensionX = LoadDimensionX,
+                LoadDimensionY = LoadDimensionY,
+                FetchHeight = FetchHeight,
+                DeliverHeight = DeliverHeight,
                 FetchAddress = fetch,
                 DeliverAddress = deliver,
-                AGV = AGVID.Text,
-                Area = Area,
-                Sequence = numid
+                AGV = AGV,
+               // LoadType = pallet.Text,
+                FetchConstraint = Area,
+                FetchSequence = numid
+
             };
 
 
             var to = new TransportOrderDefinition
             {
-                Transport_order_id = DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString(),
-                Transport_unit_type = pallet.Text,
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(2024, 1, 1)).TotalMilliseconds.ToString(),
+                Transport_unit_type = palett,
                 Start_time = null,
                 End_time = DateTimeOffset.UtcNow.AddMinutes(delay),
                 Custom_data = custom,
@@ -497,7 +557,7 @@ namespace AproRest
             PrmtrList.Add(SqlPrmtr);
 
             SqlPrmtr = new SqlParameter("@pallet_type", SqlDbType.VarChar);
-            SqlPrmtr.Value = pallet.Text;
+            SqlPrmtr.Value = palett;
             PrmtrList.Add(SqlPrmtr);
 
             InsertIntoSql(CmdText, PrmtrList, "new order added");
@@ -530,7 +590,7 @@ namespace AproRest
 
             var to = new TransportOrderDefinition
             {
-                Transport_order_id = DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString(),
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(2024, 1, 1)).Seconds.ToString(),
                 Transport_unit_type = "Pallet",
                 Start_time = null,
                 End_time = DateTimeOffset.UtcNow.AddMinutes(10),
@@ -599,7 +659,7 @@ namespace AproRest
             return to;
         }
 
-         private TransportOrderDefinition createTO4_const(string fetch, string deliver, string fetch2, string deliver2, int delay, string cid, int numid, string Area)
+        private TransportOrderDefinition createTO4_const(string fetch, string deliver, string fetch2, string deliver2, int delay, string cid, int numid, string Area)
         {
 
             TransportOrderStep stp1 = new TransportOrderStep
@@ -629,17 +689,25 @@ namespace AproRest
             };
 
 
-            if (numid > 0) {
+            if (numid > 0)
+            {
 
-
-                stp0.Constraint_group_id = cid;
+                if (cfetch)
+                {
+                    stp0.Constraint_group_id = cid;
                     stp0.Constraint_group_index = numid;
+                }
+                if (cdeliver)
+                {
+                    stp1.Constraint_group_id = cid;
+                    stp1.Constraint_group_index = numid + 1;
+                }
 
-               
+
             }
-           
 
-            
+
+
 
             custom_dataC custom = new custom_dataC
             {
@@ -651,14 +719,14 @@ namespace AproRest
                 FetchAddress = fetch,
                 DeliverAddress = deliver,
                 AGV = "0",
-                Area = Area,
-                Sequence = numid
+                FetchConstraint = Area,
+                FetchSequence = numid
             };
 
 
             var to = new TransportOrderDefinition
             {
-                Transport_order_id = DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString(),
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(2024, 1, 1)).TotalSeconds.ToString(),
                 Transport_unit_type = "Palett",
                 Start_time = null,
                 End_time = DateTimeOffset.UtcNow.AddMinutes(delay),
@@ -736,7 +804,7 @@ namespace AproRest
             return to;
         }
 
-       
+
 
 
         private UtilityOrderDefinition NewUtilityTO()
@@ -793,7 +861,7 @@ namespace AproRest
                 try
                 {
 
-                    if (comok == true )
+                    if (comok == true)
                     {
 
                         var x = sys.EventsAllAsync(10, true, 0, null).GetAwaiter().GetResult();
@@ -827,9 +895,9 @@ namespace AproRest
                                     this.log2.Items.Add(" - t_id : " + value2.ToString() + " waiting ack for adresse: " + value.ToString() + ", step: " + value3.ToString() + "  ,status: " + status_op.ToString() + "  ,error: " + er);
 
                                 }));
-                               
+
                                 //MainWindow.updatedb(To_id, DateTimeOffset.Parse(start_time), status, int.Parse(Ev_id));
-                               // MainWindow.updatedb(value2.ToString(), value4.ToString(), "AGV waiting fetched ack", int.Parse(Ev_id));
+                                // MainWindow.updatedb(value2.ToString(), value4.ToString(), "AGV waiting fetched ack", int.Parse(Ev_id));
                                 if (autoack == true)
                                 {
                                     sys.ContinueAsync(value2.ToString(), item.Event_id);
@@ -934,15 +1002,15 @@ namespace AproRest
                                     this.log2.Items.Add(" * t_id : " + value2.ToString() + " waiting preload ack : adress: " + value.ToString() + ", step: " + value3.ToString());
                                 }));
                                 if (autoack == true)
-                                { 
-                                sys.ContinueAsync(value2.ToString(), item.Event_id);
-                                Console.WriteLine(" ack arrivé envoyé ");
-                                Dispatcher.Invoke(new InvokeDelegate(() =>
                                 {
-                                    this.log2.Items.Add(" - t_id : " + value2.ToString() + " preload ack sent : adress: " + value.ToString() + " , step: " + value3.ToString());
+                                    sys.ContinueAsync(value2.ToString(), item.Event_id);
+                                    Console.WriteLine(" ack arrivé envoyé ");
+                                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                                    {
+                                        this.log2.Items.Add(" - t_id : " + value2.ToString() + " preload ack sent : adress: " + value.ToString() + " , step: " + value3.ToString());
                                     //  this.log.Items[this.log.Items.Count - 1].Background = Brushes.LimeGreen
                                 }));
-                            }
+                                }
                                 string CmdText;
                                 SqlParameter SqlPrmtr;
                                 List<SqlParameter> PrmtrList;
@@ -1017,11 +1085,44 @@ namespace AproRest
                                 //refresh_orderDG();
 
                             }
+                            if (item.Type == "ParameterUpdateEvent")
+                            {
+                                Console.WriteLine("event update");
+                                item.Payload.AdditionalProperties.TryGetValue("parameter_name", out object name);
+                                item.Payload.AdditionalProperties.TryGetValue("transport_order_id", out object To_id);
+                                item.Payload.AdditionalProperties.TryGetValue("parameter_value", out object value);
+                                //   item.Payload.AdditionalProperties.TryGetValue("drive_start_time", out object value4);
 
+
+
+
+                                ParameterRequestAnswer stp1 = new ParameterRequestAnswer
+                                {
+                                    Event_id = item.Event_id,
+                                    Parameter_name = name.ToString(),
+                                    Parameter_value = value.ToString()
+                                };
+
+                                HttpClient client = new HttpClient();
+
+                                var syspar = new ParameterClient(client);
+
+                                syspar.BaseUrl = "http://" + IP_host + "/api/v1/";
+                                syspar.ParAsync(To_id.ToString(), stp1);
+
+
+
+
+                            }
                         }
 
 
                     }
+                }
+                catch (System.InvalidOperationException ex)
+                {
+                    Console.WriteLine(ex);
+
                 }
                 catch
                 {
@@ -1159,7 +1260,7 @@ namespace AproRest
 
 
 
-        public  void insert_agv()
+        public void insert_agv()
         {
             string CmdText;
 
@@ -1302,7 +1403,7 @@ namespace AproRest
                             curagv2 = curagv;
                         }
                         if (orderstate.Estimated_finish_time != null)
-                            updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv2, 0);
+                            updateorder(orderstate.Id, DateTimeOffset.Parse(orderstate.Estimated_finish_time.ToString()), curagv2, 0, "");
 
                     }
                 }
@@ -1310,7 +1411,7 @@ namespace AproRest
                 using (SqlConnection connection2 = new SqlConnection(connectionString))
                 {
                     connection2.Open();
-                    SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
+                    SqlCommand cmd = new SqlCommand("SELECT * FROM dbo.agvs order by agv_id", connection2);
                     SqlDataAdapter sda = new SqlDataAdapter(cmd);
                     DataSet ds = new DataSet();
                     sda.Fill(ds);
@@ -1320,9 +1421,9 @@ namespace AproRest
                         status_db.Content = "Data refresh to db";
                         status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
                         agv.ItemsSource = ds.Tables[0].DefaultView;
-                    //  this.order_list.Resources["columnForeground"] = Brushes.Red;
+                        //  this.order_list.Resources["columnForeground"] = Brushes.Red;
 
-                }));
+                    }));
 
 
                 }
@@ -1363,108 +1464,108 @@ namespace AproRest
         {
             string connectionString = Connect_string;
             DataSet ds = new DataSet();
-         
 
-                //    DataSet ds2 = new DataSet();
-                try
+
+            //    DataSet ds2 = new DataSet();
+            try
+            {
+
+
+                using (SqlConnection connection2 = new SqlConnection(connectionString))
                 {
 
-
-                    using (SqlConnection connection2 = new SqlConnection(connectionString))
+                    try
                     {
+                        connection2.Open();
+                        string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
+                            "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
+                            "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
+                            " ,[Sent],ack_event ,agv,pallet_type, error,customfields  FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
 
-                        try
+
+
+                        SqlCommand cmd = new SqlCommand(str, connection2);
+
+                        SqlDataAdapter sda = new SqlDataAdapter(cmd);
+
+                        // sda.SelectCommand = cmd;
+                        sda.Fill(ds);
+                        //str = "SELECT  * FROM IO ";
+                        // cmd = new SqlCommand(str, connection2);
+                        // SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                        // sda2.Fill(ds2);
+
+
+                        cmd = new SqlCommand("SELECT * FROM dbo.agvs order by agv_id", connection2);
+                        SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
+                        DataSet ds2 = new DataSet();
+                        sda2.Fill(ds2);
+
+
+
+
+                        //  this.order_list.Resources["columnForeground"] = Brushes.Red;
+
+
+
+
+
+
+
+
+                        Dispatcher.Invoke(new InvokeDelegate(() =>
                         {
-                            connection2.Open();
-                            string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
-                                "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
-                                "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
-                                " ,[Sent],ack_event ,agv,pallet_type, error FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
+                            status_db.Content = "Data refresh to db";
+                            status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
+                            order_list.ItemsSource = ds.Tables[0].DefaultView;
 
+                            agv.ItemsSource = ds2.Tables[0].DefaultView;
+                                //  this.order_list.Resources["columnForeground"] = Brushes.Red;
 
-
-                            SqlCommand cmd = new SqlCommand(str, connection2);
-
-                            SqlDataAdapter sda = new SqlDataAdapter(cmd);
-
-                            // sda.SelectCommand = cmd;
-                            sda.Fill(ds);
-                            //str = "SELECT  * FROM IO ";
-                            // cmd = new SqlCommand(str, connection2);
-                            // SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
-                            // sda2.Fill(ds2);
-
-
-                            cmd = new SqlCommand("SELECT * FROM dbo.agvs order by AGVid", connection2);
-                            SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
-                            DataSet ds2 = new DataSet();
-                            sda2.Fill(ds2);
-
-
-
-
-                            //  this.order_list.Resources["columnForeground"] = Brushes.Red;
-
-
-
-
-
-
-
-
-                            Dispatcher.Invoke(new InvokeDelegate(() =>
-                            {
-                                status_db.Content = "Data refresh to db";
-                                status_db.Background = (Brush)new BrushConverter().ConvertFromString("#FFFFB25A");
-                                order_list.ItemsSource = ds.Tables[0].DefaultView;
-
-                                agv.ItemsSource = ds2.Tables[0].DefaultView;
-                            //  this.order_list.Resources["columnForeground"] = Brushes.Red;
-
-                        }));
-                        }
-                        catch
-                        { }
-
-
-
-                        connection2.Close();
+                            }));
                     }
-                }
-                catch (InvalidCastException ex)
-                {
-                    Console.WriteLine("ERREUR COMMANDE ...");
-                    Console.WriteLine(ex.Message.ToString());
-                    // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+                    catch
+                    { }
 
-                    throw ex;
-                    // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
-                    // lequel cette fonction est appelée et déclenchera le catch
-                }
-                catch (SqlException ex)
-                {
-                    Console.WriteLine("ERREUR DE CONNEXION ...");
-                    Console.WriteLine(ex.Message.ToString());
-                    // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
 
-                    throw ex;
-                }
-                catch (InvalidOperationException ex)
-                {
-                    Console.WriteLine("ERREUR ECRITURE ...");
-                    Console.WriteLine(ex.Message.ToString());
-                    // WriteLog("ERREUR ECRITURE ... " + ex.Message);
 
-                    throw ex;
+                    connection2.Close();
                 }
-            
+            }
+            catch (InvalidCastException ex)
+            {
+                Console.WriteLine("ERREUR COMMANDE ...");
+                Console.WriteLine(ex.Message.ToString());
+                // WriteLog("ERREUR COMMANDE ... " + ex.Message);
+
+                throw ex;
+                // permet de passer l'exeption à la fonction appelante,  comme le try catch dans
+                // lequel cette fonction est appelée et déclenchera le catch
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine("ERREUR DE CONNEXION ...");
+                Console.WriteLine(ex.Message.ToString());
+                // WriteLog("ERREUR DE CONNEXION ... " + ex.Message);
+
+                throw ex;
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("ERREUR ECRITURE ...");
+                Console.WriteLine(ex.Message.ToString());
+                // WriteLog("ERREUR ECRITURE ... " + ex.Message);
+
+                throw ex;
+            }
+
 
         }
 
         public void trefresh_orderDG()
         {
             string connectionString = Connect_string;
-          
+
             while (true)
             {
                 Thread.Sleep(5000);
@@ -1483,7 +1584,7 @@ namespace AproRest
                             string str = "SELECT  [id] ,[transport_order_id] ,[fetch_address] ,[fetch_height] as F_Height ,[deliver_address] ,[deliver_height] as D_Height,+" +
                                 "[LoadDimensionX] as DimX,[LoadDimensionY] as DimY,[LoadWeight] as Lweight,[CreatedAt] AT TIME ZONE 'Central Europe Standard Time' AS[CreatedAt] ,[StartedAt] " +
                                 "AT TIME ZONE 'Central Europe Standard Time' AS[StartedAt] ,[FinishedAt] AT TIME ZONE 'Central Europe Standard Time' AS[FinishedAt]  ,[CurentStatus] " +
-                                " ,[Sent],ack_event ,agv,pallet_type, error FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
+                                " ,[Sent],ack_event ,agv,pallet_type, error, customfields FROM orderbuffer WHERE CreatedAt>getdate()-1 order by CreatedAt desc ";
 
 
                             DataSet ds = new DataSet();
@@ -1499,7 +1600,7 @@ namespace AproRest
                             // sda2.Fill(ds2);
 
 
-                            cmd = new SqlCommand("SELECT * FROM dbo.agvs", connection2);
+                            cmd = new SqlCommand("SELECT * FROM dbo.agvs order by agv_id ", connection2);
                             SqlDataAdapter sda2 = new SqlDataAdapter(cmd);
                             DataSet ds2 = new DataSet();
                             sda2.Fill(ds2);
@@ -1840,7 +1941,7 @@ namespace AproRest
             }
         }
 
-        public static void updateorder(string toid, DateTimeOffset start, int agv, int evid)
+        public static void updateorder(string toid, DateTimeOffset start, int agv, int evid, string csutom)
         {
             string connectionString = Connect_string;
 
@@ -1853,22 +1954,23 @@ namespace AproRest
                     //status_db.Content = "Data updated to db";
                     if (evid == 0)
                     {
-                        SqlCommand cmd = new SqlCommand(" UPDATE orderbuffer SET  FinishedAt = @start, agv = @agv Where  transport_order_id = @toid ", connection2);
+                        SqlCommand cmd = new SqlCommand(" UPDATE orderbuffer SET  FinishedAt = @start, agv = @agv , customfields = @customfields Where  transport_order_id = @toid ", connection2);
 
                         cmd.Parameters.AddWithValue("@start", start);
                         cmd.Parameters.AddWithValue("@agv", agv);
                         cmd.Parameters.AddWithValue("@toid", toid);
-
+                        cmd.Parameters.AddWithValue("@customfields", csutom);
                         cmd.ExecuteNonQuery();
                     }
                     else
                     {
-                        SqlCommand cmd = new SqlCommand(" UPDATE orderbuffer SET  FinishedAt = @start, agv = @agv,ack_event = @evid Where  transport_order_id = @toid ", connection2);
+                        SqlCommand cmd = new SqlCommand(" UPDATE orderbuffer SET  FinishedAt = @start, agv = @agv,ack_event = @evid, customfields = @customfields  Where  transport_order_id = @toid ", connection2);
 
                         cmd.Parameters.AddWithValue("@start", start);
                         cmd.Parameters.AddWithValue("@agv", agv);
                         cmd.Parameters.AddWithValue("@toid", toid);
                         cmd.Parameters.AddWithValue("@evid", evid);
+                        cmd.Parameters.AddWithValue("@customfields", csutom);
                         cmd.ExecuteNonQuery();
 
                     }
@@ -2174,7 +2276,7 @@ namespace AproRest
             status.Content = "Server : " + "no connection" + "  |  system name : " + "no system";
             status.Background = Brushes.OrangeRed;
 
-           // refresh_orderDG();
+            // refresh_orderDG();
             Thread a = new Thread(getack);
             a.IsBackground = true;
             a.Start();
@@ -2196,80 +2298,90 @@ namespace AproRest
             try
             {
 
-            
-            var listener = new HttpListener();
 
-            listener.Prefixes.Add(ipweb.ToString());
+                var listener = new HttpListener();
 
-            listener.Start();
-           
+                listener.Prefixes.Add(ipweb.ToString());
 
-            Console.WriteLine("Listening on "+ ipweb.ToString());
-
-            while (true)
-            {
+                listener.Start();
 
 
-                Dispatcher.Invoke(new InvokeDelegate(() =>
-                {
-                    webh.Content = "Webhook : " + "Listening on " + ipweb.ToString();
-                    webh.Background = Brushes.LimeGreen;
+                Console.WriteLine("Listening on " + ipweb.ToString());
 
-                }));
-                HttpListenerContext ctx = listener.GetContext();
-                HttpListenerRequest request = ctx.Request;
-                // Console.WriteLine($"Received request for {request.Url}");
-                string ua = request.Headers.Get("User-Agent");
-                Console.WriteLine($"{request.HttpMethod} {request.Url}");
-
-                var body = request.InputStream;
-                var encoding = request.ContentEncoding;
-                var reader = new StreamReader(body, encoding);
-                string s = "null";
-                bool ok = true;
-                if (request.HasEntityBody)
+                while (true)
                 {
 
 
-                    if (request.ContentType != null)
+                    Dispatcher.Invoke(new InvokeDelegate(() =>
                     {
-                        Console.WriteLine("Client data content type {0}", request.ContentType);
-                    }
-                    Console.WriteLine("Client data content length {0}", request.ContentLength64);
+                        webh.Content = "Webhook : " + "Listening on " + ipweb.ToString();
+                        webh.Background = Brushes.LimeGreen;
 
-                    // Console.WriteLine("Start of data:");
-                    s = reader.ReadToEnd();
-                    //Console.WriteLine(s);
-                    //Console.WriteLine("End of data:");
-                    // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+                    }));
+                    HttpListenerContext ctx = listener.GetContext();
+                    HttpListenerRequest request = ctx.Request;
+                    // Console.WriteLine($"Received request for {request.Url}");
+                    string ua = request.Headers.Get("User-Agent");
+                    Console.WriteLine($"{request.HttpMethod} {request.Url}");
 
-                    //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
-
-
-                    var dyna = JsonConvert.DeserializeObject<dynamic>(s);
-                    string type = dyna.type;
-                    if (type == "stop")
+                    var body = request.InputStream;
+                    var encoding = request.ContentEncoding;
+                    var reader = new StreamReader(body, encoding);
+                    string s = "null";
+                    bool ok = true;
+                    if (request.HasEntityBody)
                     {
-                        var response2 = ctx.Response;
-                        response2.StatusCode = (int)HttpStatusCode.OK;
-                        response2.ContentType = "text/plain";
-                        response2.OutputStream.Write(new byte[] { }, 0, 0);
-                        response2.OutputStream.Close();
-                        break;
-                    }
 
-                   
-                    if (forward_enable)
-                    {
-                            
-                           ok= await forward(s);
-                    }
+
+                        if (request.ContentType != null)
+                        {
+                            Console.WriteLine("Client data content type {0}", request.ContentType);
+                        }
+                        Console.WriteLine("Client data content length {0}", request.ContentLength64);
+
+                        // Console.WriteLine("Start of data:");
+                        s = reader.ReadToEnd();
+                        //Console.WriteLine(s);
+                        //Console.WriteLine("End of data:");
+                        // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+
+                        //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
+
+
+                        var dyna = JsonConvert.DeserializeObject<dynamic>(s);
+                        string type = dyna.type;
+                        if (type == "stop")
+                        {
+                            var response2 = ctx.Response;
+                            response2.StatusCode = (int)HttpStatusCode.OK;
+                            response2.ContentType = "text/plain";
+                            response2.OutputStream.Write(new byte[] { }, 0, 0);
+                            response2.OutputStream.Close();
+                            break;
+                        }
+
+
+                        if (forward_enable)
+                        {
+
+                            ok = await forward(s);
+                        }
                         Thread a = new Thread(new ParameterizedThreadStart(LocalDB.webhook_receive));
                         a.IsBackground = true;
                         a.Start(s);
 
-                       // LocalDB.webhook_receive(dyna);
-                        WriteMessage("Webhooks: " + type.ToString() + " " + s, Brushes.Green, log2);
+                        // LocalDB.webhook_receive(dyna);
+                        if (type != "AgvState")
+
+                        {
+                            if (type != "OrderState")
+                            {
+
+
+                                WriteMessage("Webhooks: " + type.ToString() + " " + s, Brushes.Green, log2);
+                            }
+                        }
+
                         //Dispatcher.Invoke(new InvokeDelegate(() =>
                         //{
 
@@ -2282,12 +2394,12 @@ namespace AproRest
 
 
                         //}));
-                      //  refresh_ioDG();
-                    //refresh_orderDG();
-                    reader.Close();
-                    body.Close();
+                        //  refresh_ioDG();
+                        //refresh_orderDG();
+                        reader.Close();
+                        body.Close();
 
-                }
+                    }
                     if (ok == false)
                     {
 
@@ -2295,8 +2407,8 @@ namespace AproRest
                     }
                     else
                     {
-                    var response = ctx.Response;
-                  
+                        var response = ctx.Response;
+
                         response.StatusCode = (int)HttpStatusCode.OK;
                         response.ContentType = "text/plain";
                         response.OutputStream.Write(new byte[] { }, 0, 0);
@@ -2304,31 +2416,31 @@ namespace AproRest
                     }
 
 
-                //HttpListenerResponse resp = ctx.Response;
-                //resp.Headers.Set("Content-Type", "text/plain");
+                    //HttpListenerResponse resp = ctx.Response;
+                    //resp.Headers.Set("Content-Type", "text/plain");
 
-                //string data = s ?? "unknown";
-                //byte[] buffer = Encoding.UTF8.GetBytes(data);
-                //resp.ContentLength64 = buffer.Length;
+                    //string data = s ?? "unknown";
+                    //byte[] buffer = Encoding.UTF8.GetBytes(data);
+                    //resp.ContentLength64 = buffer.Length;
 
-                //Stream ros = resp.OutputStream;
-                //ros.Write(buffer, 0, buffer.Length);
-                //if (web == false)
-                //{
-                //    break;
-                //}
+                    //Stream ros = resp.OutputStream;
+                    //ros.Write(buffer, 0, buffer.Length);
+                    //if (web == false)
+                    //{
+                    //    break;
+                    //}
+                }
+                listener.Stop();
+                Console.WriteLine("Stop Listening on port 8001...");
+                Dispatcher.Invoke(new InvokeDelegate(() =>
+                {
+                    webh.Content = "Webhook : " + "Stop Listening on" + ipweb.ToString();
+                    webh.Background = Brushes.OrangeRed;
+                    webhook.IsEnabled = true;
+                }));
+
             }
-            listener.Stop();
-            Console.WriteLine("Stop Listening on port 8001...");
-            Dispatcher.Invoke(new InvokeDelegate(() =>
-            {
-                webh.Content = "Webhook : " + "Stop Listening on" + ipweb.ToString();
-                webh.Background = Brushes.OrangeRed;
-                webhook.IsEnabled = true;
-            }));
-
-        }
-            catch(HttpListenerException ex)
+            catch (HttpListenerException ex)
             {
                 MessageBox.Show(ex.Message);
             }
@@ -2431,8 +2543,8 @@ namespace AproRest
 
 
                         //}));
-                      //  refresh_ioDG();
-                       // refresh_orderDG();
+                        //  refresh_ioDG();
+                        // refresh_orderDG();
                         reader.Close();
                         body.Close();
 
@@ -2502,20 +2614,26 @@ namespace AproRest
                 sys.BaseUrl = "http://" + WIP_host + "/api/v1/";
             else
                 sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+            getinfo();
 
             var to = new TransportOrderDefinition();
 
+            if (use_fetch)
+            {
+                
+                area.Text = Fetch_address.Text;
+            }
 
             try
             {
-                if (useb == true)
+                if (useb == true || useb_drop == true)
                 {
-                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, 20, area.Text, Int16.Parse(sequence.Text), area.Text);
+                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, Int16.Parse(delay.Text), area.Text, Int16.Parse(sequence.Text), area.Text, ctype);
                     var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
                 else
                 {
-                    to = NewTO(Fetch_address.Text, Deliver_address.Text, 20);
+                    to = NewTO(Fetch_address.Text, Deliver_address.Text, Int16.Parse(delay.Text));
                     var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
 
@@ -2536,6 +2654,12 @@ namespace AproRest
                 MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+            if (auto_increment)
+            {
+                int seq = Int16.Parse(sequence.Text);
+                seq = seq + 1;
+                sequence.Text = seq.ToString();
+            }
             refresh_orderDG();
 
 
@@ -2556,12 +2680,58 @@ namespace AproRest
 
             try
             {
-              
+
                 {
                     to = createTO4_const(Fetch_address1.Text, Deliver_address1.Text, Fetch_address2.Text, Deliver_address2.Text, 20, area.Text, Int16.Parse(sequence.Text), area.Text);
                     var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
-              
+
+
+
+
+            }
+            catch (ApiException ex)
+            {
+                Console.WriteLine("ERREUR ordre ...{0}", to.Transport_order_id);
+                Console.WriteLine(ex.Message.ToString());
+
+                updatedb_error(to.Transport_order_id, DateTime.Now, "Error", "bad location information please check", 0);
+
+
+            }
+            catch (HttpRequestException)
+            {
+                MessageBox.Show("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", "error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            //refresh_orderDG();
+
+
+        }
+
+
+
+        private void Start_Click3(object sender, RoutedEventArgs e)
+        {
+            HttpClient client2 = new HttpClient();
+            var sys = new Client(client2);
+
+            if (usew == true)
+                sys.BaseUrl = "http://" + WIP_host + "/api/v1/";
+            else
+                sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+
+            var to = new TransportOrderDefinition();
+
+
+            try
+            {
+
+                {
+                    to = createTO3_const(Fetch_address3.Text, Deliver_address3.Text, WAIT_address3.Text, 20, area.Text, Int16.Parse(sequence.Text), area.Text,"0");
+                    var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
+                }
+
 
 
 
@@ -2850,13 +3020,27 @@ namespace AproRest
         private void Csv_loazd_Click(object sender, RoutedEventArgs e)
         {
             csv_loazd.IsEnabled = false;
-
-            load_csv();
+            getinfo();
+            Thread a = new Thread(load_csv);
+            a.IsBackground = true;
+            a.Start();
+            // load_csv();
+            csv_loazd.IsEnabled = true;
 
         }
 
         private void Csv_loazd4_Click(object sender, RoutedEventArgs e)
         {
+            if (constraint_fetch.IsChecked == true)
+            { cfetch = true; }
+            else
+                cfetch = false;
+            if (constraint_deliver.IsChecked == true)
+            { cdeliver = true; }
+            else
+                cdeliver = false;
+
+
             csv_loazd4.IsEnabled = false;
             Thread a = new Thread(load_csv4);
             a.IsBackground = true;
@@ -2915,14 +3099,14 @@ namespace AproRest
                                 if (area != dr[3].ToString())
                                 {
                                     area = dr[3].ToString();
-                                    area_id = area + DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalHours.ToString();
+                                    area_id = area + DateTime.Now.Subtract(new DateTime(2024, 1, 1)).TotalMilliseconds.ToString();
                                 }
-                                to = createTO_const(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()), area_id, int.Parse(dr[4].ToString()), dr[3].ToString());
+                                to = createTO_const(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()), area_id, int.Parse(dr[4].ToString()), dr[3].ToString(), dr[5].ToString());
                             }
 
 
                             var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
-
+                            Thread.Sleep(1000);
                         }
                         catch (ApiException ex)
                         {
@@ -2933,18 +3117,19 @@ namespace AproRest
 
                         }
 
-                       // refresh_orderDG();
-                     //   Console.WriteLine(Column1, Row1);
+                        // refresh_orderDG();
+                        //   Console.WriteLine(Column1, Row1);
                     }
 
                 }
             }
             catch (Exception ex)
-            { MessageBox.Show(ex.ToString(), "load csv");
+            {
+                MessageBox.Show(ex.ToString(), "load csv");
 
             }
 
-            csv_loazd.IsEnabled = true;
+
 
         }
 
@@ -2989,14 +3174,14 @@ namespace AproRest
 
                         try
                         {
-                           
-                                if (area != dr[5].ToString())
-                                {
-                                    area = dr[5].ToString();
-                                    area_id = area + DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalHours.ToString();
-                                }
-                                to = createTO4_const(dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), int.Parse(dr[4].ToString()), area_id, int.Parse(dr[6].ToString()), dr[5].ToString());
-                           
+
+                            if (area != dr[5].ToString())
+                            {
+                                area = dr[5].ToString();
+                                area_id = area + DateTime.Now.Hour.ToString() + ":" + DateTime.Now.Minute.ToString();
+                            }
+                            to = createTO4_const(dr[0].ToString(), dr[1].ToString(), dr[2].ToString(), dr[3].ToString(), int.Parse(dr[4].ToString()), area_id, int.Parse(dr[6].ToString()), dr[5].ToString());
+
 
 
                             var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
@@ -3012,7 +3197,7 @@ namespace AproRest
 
                         }
 
-                       // refresh_orderDG();
+                        // refresh_orderDG();
                         Console.WriteLine(Column1, Row1);
                     }
 
@@ -3024,7 +3209,7 @@ namespace AproRest
 
             }
 
-         
+
 
         }
 
@@ -3176,32 +3361,42 @@ namespace AproRest
 
         private void double_click(object sender, MouseButtonEventArgs e)
         {
-            if (order_list.SelectedItem != null)
-            {// insert_agv();
-                string connectionString = Connect_string;
+            try
+            {
+                if (order_list.SelectedItem != null)
+                {// insert_agv();
+                    string connectionString = Connect_string;
 
-                DataRowView dataRowView = (DataRowView)order_list.SelectedItem;
-                int ID = Convert.ToInt32(dataRowView.Row[0]);
-                stoid = dataRowView.Row[1].ToString();
-                string pick = dataRowView.Row[2].ToString();
-                string drop = dataRowView.Row[4].ToString();
-                string pickH = dataRowView.Row[3].ToString();
-                string dropH = dataRowView.Row[5].ToString();
-                string palette = dataRowView.Row[16].ToString();
+                    DataRowView dataRowView = (DataRowView)order_list.SelectedItem;
+                    int ID = Convert.ToInt32(dataRowView.Row[0]);
+                    stoid = dataRowView.Row[1].ToString();
+                    string pick = dataRowView.Row[2].ToString();
+                    string drop = dataRowView.Row[4].ToString();
+                    string pickH = dataRowView.Row[3].ToString();
+                    string dropH = dataRowView.Row[5].ToString();
+                    string palette = dataRowView.Row[16].ToString();
 
-                Dispatcher.Invoke(new InvokeDelegate(() =>
-                {
-                    Fetch_address.Text = pick;
-                    Deliver_address.Text = drop;
-                    Fetch_Height.Text = pickH;
-                    Deliver_Height.Text = dropH;
-                    pallet.Text = palette;
-                    update.IsEnabled = true;
+                    Dispatcher.Invoke(new InvokeDelegate(() =>
+                    {
+                        Fetch_address.Text = pick;
+                        Deliver_address.Text = drop;
+                        Fetch_Height.Text = pickH;
+                        Deliver_Height.Text = dropH;
+                        pallet.Text = palette;
+                        update.IsEnabled = true;
+                        toid.Content = stoid.ToString();
 
-                    //status.Background = (Brush)new BrushConverter().ConvertFromString("#ff9999");
-                }));
+                        //status.Background = (Brush)new BrushConverter().ConvertFromString("#ff9999");
+                    }));
 
+                }
             }
+            catch (System.ArgumentNullException ex)
+
+            {
+                MessageBox.Show(ex.Message);
+            }
+
         }
 
 
@@ -3210,17 +3405,17 @@ namespace AproRest
         {
             if (webhook.IsChecked == true)
             {
-               // webhook_order.IsChecked = true;
+                // webhook_order.IsChecked = true;
                 WIP_utility = Ip_utility_web.Text;
                 WIP_host = Ip_host_web.Text;
                 IP_utility = Ip_utility.Text;
                 IP_host = Ip_host.Text;
                 WIP_visu = Ip_visu_web.Text;
                 IP_visu = Ip_visu.Text;
-               // utistart();
+                // utistart();
                 forward_adress = Ip_redirect_sent.Text;
-                ip_host_webhooks = "http://+:" + Ip_host_webhook.Text ;
-                loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text ;
+                ip_host_webhooks = "http://+:" + Ip_host_webhook.Text;
+                loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text;
                 ip_visu_webhooks = "http://+:" + Ip_visu_webhook.Text;
                 loca_ip_visu_webbhooks = "http://localhost:" + Ip_visu_webhook.Text;
                 web = true;
@@ -3229,7 +3424,7 @@ namespace AproRest
                 webh.Content = "Server : listening" + ip_host_webhooks;
                 webh.Background = Brushes.LimeGreen;
                 Thread c = new Thread(new ParameterizedThreadStart(serverAsync));
-              //  c = new Thread(serverAsync);
+                //  c = new Thread(serverAsync);
                 c.IsBackground = true;
                 c.Start(ip_host_webhooks);
                 if (enablevisu)
@@ -3247,25 +3442,25 @@ namespace AproRest
                     try
                     {
 
-                        string url = loca_ip_host_webbhooks+"/visu";
-                       // forward_adress = "http://localhost:8001";
+                        string url = loca_ip_host_webbhooks + "/visu";
+                        // forward_adress = "http://localhost:8001";
                         HttpClient client = new HttpClient();
                         var requestData = new { type = "stop" };
                         string json = System.Text.Json.JsonSerializer.Serialize(requestData);
                         var content = new StringContent(json, Encoding.UTF8, "application/json");
                         var response = await client.PostAsync(url, content);
                         string responseContent = await response.Content.ReadAsStringAsync();
-                         url = loca_ip_host_webbhooks + "/order";
+                        url = loca_ip_host_webbhooks + "/order";
                         content = new StringContent(json, Encoding.UTF8, "application/json");
                         response = await client.PostAsync(url, content);
-                         responseContent = await response.Content.ReadAsStringAsync();
+                        responseContent = await response.Content.ReadAsStringAsync();
                         //MessageBox.Show(responseContent);*
 
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message);
-                       // WriteMessage("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", Brushes.MediumPurple, log2);
+                        // WriteMessage("fleet controller not running or connection to " + sys.BaseUrl.ToString() + " ", Brushes.MediumPurple, log2);
 
                     }
                 }
@@ -3275,7 +3470,7 @@ namespace AproRest
         }
 
 
-       
+
 
 
         void utistart()
@@ -3433,7 +3628,7 @@ namespace AproRest
                 {
                     connection2.Open();
 
-                   
+
                     DataSet ds2 = new DataSet();
                     DataRow dRow;
                     string str = "SELECT  * FROM Settings ";
@@ -3484,11 +3679,11 @@ namespace AproRest
                 {
                     csvTable.Load(csvReader);
                 }
-              
+
                 foreach (DataRow dr in csvTable.Rows)
                 {
                     Console.WriteLine("{0}, {1}", dr[0].ToString(), dr[1].ToString());
-                   
+
                     try
                     {
 
@@ -3508,7 +3703,7 @@ namespace AproRest
                             bbpath = bbpath2;
                             Dispatcher.Invoke(new InvokeDelegate(() =>
                             {
-                                loc.Content=bbpath;
+                                loc.Content = bbpath;
 
                             }));
                         }
@@ -3532,7 +3727,7 @@ namespace AproRest
                                 if (link.GetAttributeValue("href", "DefaultValue").Contains("blackbox-files"))
                                 {
                                     bb = bb.Replace("/blackbox-files/defaultsite", "/" + link.InnerText);
-                                    string save = bbpath+ bb;
+                                    string save = bbpath + bb;
                                     if (File.Exists(save))
                                     {
                                         Dispatcher.Invoke(new InvokeDelegate(() =>
@@ -3567,7 +3762,7 @@ namespace AproRest
                         {
                             ListViewItem li = new ListViewItem();
                             li.Foreground = Brushes.Red;
-                            li.Content = System.DateTime.Now.ToString("HH:mm:ss") + " -> " + ex.Message.ToString() + " " + dr[1].ToString()+ " AGV "+ dr[0].ToString();
+                            li.Content = System.DateTime.Now.ToString("HH:mm:ss") + " -> " + ex.Message.ToString() + " " + dr[1].ToString() + " AGV " + dr[0].ToString();
                             this.bbview.Items.Add(li);
                         }));
                     }
@@ -3575,15 +3770,15 @@ namespace AproRest
                 }
             }
 
-            
-    
+
+
 
 
             catch (Exception ex)
             { MessageBox.Show(ex.ToString(), "GET blackBox"); }
             Dispatcher.Invoke(new InvokeDelegate(() =>
             {
-               BB.IsEnabled=true;
+                BB.IsEnabled = true;
             }));
 
         }
@@ -3598,7 +3793,7 @@ namespace AproRest
         {
             try
             {
-                Process.Start(@""+loc.Content);
+                Process.Start(@"" + loc.Content);
             }
             catch (Exception ex)
             { MessageBox.Show(ex.ToString(), "GET blackBox"); }
@@ -3606,19 +3801,42 @@ namespace AproRest
 
         private void changeBackground(object sender, MouseButtonEventArgs e)
         {
-            
+
         }
 
         private void batch_Checked(object sender, RoutedEventArgs e)
         {
-            if (batch_enable.IsChecked == true)
+            if (batch_enable.IsChecked == true && batch_enable_drop.IsChecked == true)
             {
                 useb = true;
+                useb_drop = true;
+                ctype = "3";
+            }
+            else if (batch_enable.IsChecked == true)
+            {
+                useb = true;
+                useb_drop = false;
+                ctype = "1";
+            }
+
+
+            else if (batch_enable_drop.IsChecked == true)
+            {
+                ctype = "2";
+                useb_drop = true;
+                useb = false;
             }
             else
+            {
+                ctype = "0";
+                useb_drop = false;
                 useb = false;
 
             }
+
+
+
+        }
 
         private void C1_Click(object sender, RoutedEventArgs e)
         {
@@ -3638,7 +3856,7 @@ namespace AproRest
             {
                 if (useb == true)
                 {
-                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, 10, area.Text, Int16.Parse(sequence.Text), area.Text);
+                    to = createTO_const(Fetch_address.Text, Deliver_address.Text, 10, area.Text, Int16.Parse(sequence.Text), area.Text, ctype);
                     var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
                 }
                 else
@@ -3678,7 +3896,7 @@ namespace AproRest
         {
 
         }
-       
+
         public static string LoginToken()
         {
             var httpWebRequest = (HttpWebRequest)WebRequest.Create("http://localhost:8001");
@@ -3690,7 +3908,7 @@ namespace AproRest
                 //  write your json content here
                 string json = JsonConvert.SerializeObject(new
                 {
-                    userName ="test",
+                    userName = "test",
                     password = "test"
                 }
                 );
@@ -3866,7 +4084,7 @@ namespace AproRest
             }
         }
 
-            public async Task<bool> forward(string s)
+        public async Task<bool> forward(string s)
         {
             try
             {
@@ -3899,7 +4117,7 @@ namespace AproRest
             {
                 test.IsEnabled = false;
                 string url = Ip_host_web_TEST.Text;
-               
+
                 HttpClient client = new HttpClient();
                 var requestData = new { type = test_text.Text };
                 string json = System.Text.Json.JsonSerializer.Serialize(requestData);
@@ -3917,42 +4135,43 @@ namespace AproRest
             }
         }
 
-       
+
 
         private async void Button_Click_server(object sender, RoutedEventArgs e)
         {
             if (web2)
-            { 
-           try  {
-              
-                string url = loca_serv2_adress;
-              
-                HttpClient client = new HttpClient();
-                var requestData = new { type = "stop" };
-                string json = System.Text.Json.JsonSerializer.Serialize(requestData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await client.PostAsync(url, content);
-                string responseContent = await response.Content.ReadAsStringAsync();
+            {
+                try
+                {
+
+                    string url = loca_serv2_adress;
+
+                    HttpClient client = new HttpClient();
+                    var requestData = new { type = "stop" };
+                    string json = System.Text.Json.JsonSerializer.Serialize(requestData);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var response = await client.PostAsync(url, content);
+                    string responseContent = await response.Content.ReadAsStringAsync();
                     //MessageBox.Show(responseContent);*
                     web2 = false;
                     //test.IsEnabled = true;
-            }
-            catch (Exception ex)
-            {
-               // MessageBox.Show(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    // MessageBox.Show(ex.Message);
                     WriteMessage("Redirect: error stop Listening on: " + sever2_adress, Brushes.Blue, bbview1);
                     WriteMessage("Redirect:" + ex.Message, Brushes.Blue, bbview1);
                 }
-        }
+            }
             else
             {
-                sever2_adress = "http://+:" + Ip_redirect_web.Text ;
-                loca_serv2_adress = "http://localhost:" + Ip_redirect_web.Text ;
+                sever2_adress = "http://+:" + Ip_redirect_web.Text;
+                loca_serv2_adress = "http://localhost:" + Ip_redirect_web.Text;
                 forward_adress = Ip_redirect_sent.Text;
                 BB1.Content = " stop listening ";
                 BB1.Background = Brushes.OrangeRed;
                 WriteMessage("Redirect: start Listening on: " + sever2_adress, Brushes.Blue, bbview1);
-                
+
                 web2 = true;
                 c = new Thread(server2Async);
                 c.IsBackground = true;
@@ -3969,10 +4188,10 @@ namespace AproRest
 
         private void Update_webhook_Click(object sender, RoutedEventArgs e)
         {
-            ip_host_webhooks ="http://+:" + Ip_host_webhook.Text ;
-            loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text ;
+            ip_host_webhooks = "http://+:" + Ip_host_webhook.Text;
+            loca_ip_host_webbhooks = "http://localhost:" + Ip_host_webhook.Text;
             ip_visu_webhooks = "http://+:" + Ip_visu_webhook.Text;
-            loca_ip_visu_webbhooks = "http://localhost:" + Ip_visu_webhook.Text ;
+            loca_ip_visu_webbhooks = "http://localhost:" + Ip_visu_webhook.Text;
         }
 
         private async void Start_test_Click(object sender, RoutedEventArgs e)
@@ -3983,16 +4202,16 @@ namespace AproRest
                 {
 
                     string url = Loca_test_ip;
-                   
+
                     HttpClient client = new HttpClient();
-                    var requestData = new { type ="stop"};
+                    var requestData = new { type = "stop" };
                     string json = System.Text.Json.JsonSerializer.Serialize(requestData);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
                     var response = await client.PostAsync(url, content);
                     string responseContent = await response.Content.ReadAsStringAsync();
                     //MessageBox.Show(responseContent);*
                     test2 = false;
-                   // test.IsEnabled = true;
+                    // test.IsEnabled = true;
                 }
                 catch (Exception ex)
                 {
@@ -4006,10 +4225,10 @@ namespace AproRest
             else
             {
                 test_ip = "http://+:" + Ip_test_server.Text;
-                Loca_test_ip = "http://localhost:" + Ip_test_server.Text ;
+                Loca_test_ip = "http://localhost:" + Ip_test_server.Text;
                 start_test.Content = "Test stop \n listening ";
                 start_test.Background = Brushes.OrangeRed;
-                WriteMessage("Test: start Listening on " + test_ip, Brushes.MediumPurple, bbview1);                                             
+                WriteMessage("Test: start Listening on " + test_ip, Brushes.MediumPurple, bbview1);
                 test2 = true;
                 c = new Thread(test_server);
                 c.IsBackground = true;
@@ -4025,90 +4244,90 @@ namespace AproRest
             {
                 var listener = new HttpListener();
 
-            listener.Prefixes.Add(test_ip);
+                listener.Prefixes.Add(test_ip);
 
 
-            listener.Start();
+                listener.Start();
 
 
-            Console.WriteLine("Listening on "+ test_ip);
+                Console.WriteLine("Listening on " + test_ip);
 
 
-            //Thread thread = new Thread(() =>
-            //{
-            //    while (listener.IsListening)
-            //    {
-            while (true)
-            {
-                try
+                //Thread thread = new Thread(() =>
+                //{
+                //    while (listener.IsListening)
+                //    {
+                while (true)
                 {
-
-                    HttpListenerContext ctx = listener.GetContext();
-                    HttpListenerRequest request = ctx.Request;
-                    // Console.WriteLine($"Received request for {request.Url}");
-                    string ua = request.Headers.Get("User-Agent");
-                    Console.WriteLine($"{request.HttpMethod} {request.Url}");
-
-                    var body = request.InputStream;
-                    var encoding = request.ContentEncoding;
-                    var reader = new StreamReader(body, encoding);
-                    string s = "null";
-
-                    if (request.HasEntityBody)
+                    try
                     {
 
+                        HttpListenerContext ctx = listener.GetContext();
+                        HttpListenerRequest request = ctx.Request;
+                        // Console.WriteLine($"Received request for {request.Url}");
+                        string ua = request.Headers.Get("User-Agent");
+                        Console.WriteLine($"{request.HttpMethod} {request.Url}");
 
-                        if (request.ContentType != null)
+                        var body = request.InputStream;
+                        var encoding = request.ContentEncoding;
+                        var reader = new StreamReader(body, encoding);
+                        string s = "null";
+
+                        if (request.HasEntityBody)
                         {
-                            Console.WriteLine("Client data content type {0}", request.ContentType);
-                        }
-                        Console.WriteLine("Client data content length {0}", request.ContentLength64);
 
-                        // Console.WriteLine("Start of data:");
-                        s = reader.ReadToEnd();
-                        //Console.WriteLine(s);
-                        //Console.WriteLine("End of data:");
-                        // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
 
-                        //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
-                        var dyna = JsonConvert.DeserializeObject<dynamic>(s);
-                        string type = dyna.type;
-                        if (type == "stop")
-                        {
-                            var response2 = ctx.Response;
-                            response2.StatusCode = (int)HttpStatusCode.OK;
-                            response2.ContentType = "text/plain";
-                            response2.OutputStream.Write(new byte[] { }, 0, 0);
-                            response2.OutputStream.Close();
-                            break;
-                        }
+                            if (request.ContentType != null)
+                            {
+                                Console.WriteLine("Client data content type {0}", request.ContentType);
+                            }
+                            Console.WriteLine("Client data content length {0}", request.ContentLength64);
+
+                            // Console.WriteLine("Start of data:");
+                            s = reader.ReadToEnd();
+                            //Console.WriteLine(s);
+                            //Console.WriteLine("End of data:");
+                            // var jsonTextReader = new Newtonsoft.Json.JsonTextReader(reader);
+
+                            //Event Event2 = System.Text.Json.JsonSerializer.Deserialize<Event>(s);
+                            var dyna = JsonConvert.DeserializeObject<dynamic>(s);
+                            string type = dyna.type;
+                            if (type == "stop")
+                            {
+                                var response2 = ctx.Response;
+                                response2.StatusCode = (int)HttpStatusCode.OK;
+                                response2.ContentType = "text/plain";
+                                response2.OutputStream.Write(new byte[] { }, 0, 0);
+                                response2.OutputStream.Close();
+                                break;
+                            }
 
                             //   LocalDB.webhook_receive(dyna);
                             WriteMessage("Test: " + s, Brushes.MediumPurple, bbview1);
-                       
 
-                        reader.Close();
-                        body.Close();
 
+                            reader.Close();
+                            body.Close();
+
+                        }
+
+                        var response = ctx.Response;
+                        response.StatusCode = (int)HttpStatusCode.OK;
+                        response.ContentType = "text/plain";
+                        response.OutputStream.Write(new byte[] { }, 0, 0);
+                        response.OutputStream.Close();
                     }
-
-                    var response = ctx.Response;
-                    response.StatusCode = (int)HttpStatusCode.OK;
-                    response.ContentType = "text/plain";
-                    response.OutputStream.Write(new byte[] { }, 0, 0);
-                    response.OutputStream.Close();
-                }
-                catch (System.Net.HttpListenerException ex)
-                {
+                    catch (System.Net.HttpListenerException ex)
+                    {
                         WriteMessage("Test: error" + ex.Message, Brushes.MediumPurple, bbview1);
                     }
 
-            }
-            //});
-            //thread.Start();
-            //Console.ReadLine();
-            //while (true)
-            //{
+                }
+                //});
+                //thread.Start();
+                //Console.ReadLine();
+                //while (true)
+                //{
 
 
 
@@ -4116,37 +4335,37 @@ namespace AproRest
 
 
 
-            //    //HttpListenerResponse resp = ctx.Response;
-            //    //resp.Headers.Set("Content-Type", "text/plain");
+                //    //HttpListenerResponse resp = ctx.Response;
+                //    //resp.Headers.Set("Content-Type", "text/plain");
 
-            //    //string data = s ?? "unknown";
-            //    //byte[] buffer = Encoding.UTF8.GetBytes(data);
-            //    //resp.ContentLength64 = buffer.Length;
+                //    //string data = s ?? "unknown";
+                //    //byte[] buffer = Encoding.UTF8.GetBytes(data);
+                //    //resp.ContentLength64 = buffer.Length;
 
-            //    //Stream ros = resp.OutputStream;
-            //    //ros.Write(buffer, 0, buffer.Length);
-            //    if (web2 == false)
-            //    {
-            //        break;
-            //    }
-            //}
-            listener.Stop();
-            Console.WriteLine("Stop Listening on port 8002...");
+                //    //Stream ros = resp.OutputStream;
+                //    //ros.Write(buffer, 0, buffer.Length);
+                //    if (web2 == false)
+                //    {
+                //        break;
+                //    }
+                //}
+                listener.Stop();
+                Console.WriteLine("Stop Listening on port 8002...");
                 // web2 = true;
                 WriteMessage("Test: Stop Listening on " + test_ip, Brushes.MediumPurple, bbview1);
                 Dispatcher.Invoke(new InvokeDelegate(() =>
             {
                 start_test.Content = "Start listenening ";
                 start_test.Background = Brushes.LightBlue;
-               
+
             }));
-         
-        }
-            catch(HttpListenerException ex)
+
+            }
+            catch (HttpListenerException ex)
             {
-               // MessageBox.Show(ex.Message);
+                // MessageBox.Show(ex.Message);
                 WriteMessage("Test: Error Listening on " + test_ip, Brushes.MediumPurple, bbview1);
-                WriteMessage("Test: "+ ex.Message, Brushes.MediumPurple, bbview1);
+                WriteMessage("Test: " + ex.Message, Brushes.MediumPurple, bbview1);
 
                 Dispatcher.Invoke(new InvokeDelegate(() =>
                 {
@@ -4157,11 +4376,11 @@ namespace AproRest
                 }));
             }
 
-}
+        }
 
         private void Update_test_server_ip_Click(object sender, RoutedEventArgs e)
         {
-            test_ip = "http://+:"+Ip_test_server.Text+"/";
+            test_ip = "http://+:" + Ip_test_server.Text + "/";
             Loca_test_ip = "http://localhost:" + Ip_test_server.Text + "/";
         }
 
@@ -4193,7 +4412,7 @@ namespace AproRest
 
         private void Visuenable_Checked(object sender, RoutedEventArgs e)
         {
-            if (visuenable.IsChecked ==true )
+            if (visuenable.IsChecked == true)
             {
                 enablevisu = true;
             }
@@ -4202,10 +4421,487 @@ namespace AproRest
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-           bbview1.Items.Clear();
+            bbview1.Items.Clear();
+        }
+
+
+        private TransportOrderDefinition NewTO3(string fetch, string deliver, int delay)
+        {
+
+            TransportOrderStep stp1 = new TransportOrderStep
+            {
+                Operation_type = "Task",
+                Addresses = new string[] { deliver }
+            };
+            TransportOrderStep stp2 = new TransportOrderStep
+            {
+                Operation_type = "Drop",
+                Addresses = new string[] { fetch }
+            };
+
+            TransportOrderStep stp0 = new TransportOrderStep
+            {
+                Operation_type = "Pick",
+                Addresses = new string[] { fetch }
+            };
+            custom_dataC custom = new custom_dataC
+            {
+                LoadWeight = Weight.Text,
+                LoadDimensionX = DimX.Text,
+                LoadDimensionY = DimY.Text,
+                FetchHeight = Fetch_Height.Text,
+                DeliverHeight = Deliver_Height.Text,
+                FetchAddress = fetch,
+                DeliverAddress = deliver,
+                AGV = AGVID.Text,
+                LoadType = pallet.Text,
+            };
+
+            var to = new TransportOrderDefinition
+            {
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds.ToString(),
+                Transport_unit_type = pallet.Text,
+                Start_time = null,
+                End_time = DateTimeOffset.UtcNow.AddMinutes(delay),
+                Custom_data = custom,
+                Steps = new TransportOrderStep[] { stp0, stp1, stp2 },
+                Partial_steps = false,
+            };
+
+            string CmdText;
+            SqlParameter SqlPrmtr;
+            List<SqlParameter> PrmtrList;
+
+
+
+            CmdText = " INSERT INTO orderbuffer" +
+
+                "([transport_order_id],[fetch_address],[fetch_height] ,[deliver_address],[deliver_height],[LoadDimensionX],[LoadDimensionY],[LoadWeight],[CreatedAt],[Sent],[pallet_type]) " +
+
+                "VALUES (@transport_order_id,@fetch_address,@fetch_height, @deliver_address,@deliver_height,@LoadDimensionX,@LoadDimensionY,@LoadWeight,@CreatedAt,@Sent,@pallet_type)";
+
+            PrmtrList = new List<SqlParameter>();
+
+            SqlPrmtr = new SqlParameter("@transport_order_id", SqlDbType.VarChar);
+            SqlPrmtr.Value = to.Transport_order_id;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.FetchAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.FetchHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.DeliverAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.DeliverHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionX", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionX); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionY", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionY); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadWeight", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadWeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@CreatedAt", SqlDbType.DateTimeOffset);
+            SqlPrmtr.Value = DateTimeOffset.UtcNow;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@Sent", SqlDbType.TinyInt);
+            SqlPrmtr.Value = 1;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@pallet_type", SqlDbType.VarChar);
+            SqlPrmtr.Value = pallet.Text;
+            PrmtrList.Add(SqlPrmtr);
+
+            InsertIntoSql(CmdText, PrmtrList, "new order added");
+
+
+            return to;
+        }
+
+        private TransportOrderDefinition createTO3_const(string fetch, string deliver, string wait, int delay, string cid, int numid, string Area, string v)
+        {
+            string cid_drop = cid + "drop";
+            int numid_drop = numid;
+            palett = "Palett";
+
+            if (v == "0" || v == "2")
+            {
+                cid = "";
+                numid = 0;
+            }
+
+
+            TransportOrderStep stp0 = new TransportOrderStep
+            {
+                Operation_type = "Pick",
+                Addresses = new string[] { fetch },
+                Constraint_group_id = cid,
+                Constraint_group_index = numid
+            };
+
+            if (v == "0" || v == "1")
+            {
+                cid_drop = "";
+                numid_drop = 0;
+            }
+
+            TransportOrderStep stp1 = new TransportOrderStep
+            {
+                Operation_type = "Wait",
+                Addresses = new string[] { wait },
+
+
+            };
+
+            TransportOrderStep stp2 = new TransportOrderStep
+            {
+                Operation_type = "Drop",
+                Addresses = new string[] { deliver },
+                Constraint_group_id = cid_drop,
+                Constraint_group_index = numid_drop
+
+            };
+
+
+            custom_dataC custom = new custom_dataC
+            {
+                LoadWeight = "800",
+                LoadDimensionX = "800",
+                LoadDimensionY = "800",
+                FetchHeight = "0",
+                DeliverHeight = "0",
+                FetchAddress = fetch,
+                DeliverAddress = deliver,
+                AGV = AGV,
+                FetchConstraint = Area,
+                FetchSequence = numid
+            };
+
+
+            var to = new TransportOrderDefinition
+            {
+                Transport_order_id = DateTime.Now.Subtract(new DateTime(2024, 1, 1)).TotalMilliseconds.ToString(),
+                Transport_unit_type = palett,
+                Start_time = null,
+                End_time = DateTimeOffset.UtcNow.AddMinutes(delay),
+                Custom_data = custom,
+                Steps = new TransportOrderStep[] { stp0, stp1, stp2 },
+                Partial_steps = false,
+            };
+
+
+
+            string connectionString = Connect_string;
+
+            string CmdText;
+            SqlParameter SqlPrmtr;
+            List<SqlParameter> PrmtrList;
+
+
+
+            CmdText = " INSERT INTO orderbuffer" +
+
+                "([transport_order_id],[fetch_address],[fetch_height] ,[deliver_address],[deliver_height],[LoadDimensionX],[LoadDimensionY],[LoadWeight],[CreatedAt],[Sent],[pallet_type]) " +
+
+                "VALUES (@transport_order_id,@fetch_address,@fetch_height, @deliver_address,@deliver_height,@LoadDimensionX,@LoadDimensionY,@LoadWeight,@CreatedAt,@Sent,@pallet_type)";
+
+            PrmtrList = new List<SqlParameter>();
+
+            SqlPrmtr = new SqlParameter("@transport_order_id", SqlDbType.VarChar);
+            SqlPrmtr.Value = to.Transport_order_id;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.FetchAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@fetch_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.FetchHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_address", SqlDbType.VarChar);
+            SqlPrmtr.Value = custom.DeliverAddress;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@deliver_height", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.DeliverHeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionX", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionX); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadDimensionY", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadDimensionY); ;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@LoadWeight", SqlDbType.Int);
+            SqlPrmtr.Value = int.Parse(custom.LoadWeight);
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@CreatedAt", SqlDbType.DateTimeOffset);
+            SqlPrmtr.Value = DateTimeOffset.UtcNow;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@Sent", SqlDbType.TinyInt);
+            SqlPrmtr.Value = 1;
+            PrmtrList.Add(SqlPrmtr);
+
+            SqlPrmtr = new SqlParameter("@pallet_type", SqlDbType.VarChar);
+            SqlPrmtr.Value = palett;
+            PrmtrList.Add(SqlPrmtr);
+
+            InsertIntoSql(CmdText, PrmtrList, "new order added");
+
+
+
+            return to;
+        }
+
+
+        private void Csv_loazd3_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var csvTable = new DataTable();
+                HttpClient client2 = new HttpClient();
+                var sys = new Client(client2);
+                if (usew == true)
+                    sys.BaseUrl = "http://" + WIP_host + "/api/v1/";
+                else
+                    sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+                // sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+                var to = new TransportOrderDefinition();
+                var dialog = new Microsoft.Win32.OpenFileDialog();
+                dialog.FileName = "Document"; // Default file name
+                dialog.DefaultExt = ".csv"; // Default file extension
+                dialog.Filter = "Text documents (.csv)|*.csv"; // Filter files by extension
+
+                // Show open file dialog box
+                bool? result = dialog.ShowDialog();
+                string filename;
+                // Process open file dialog box results
+                if (result == true)
+                {
+                    // Open document
+                    filename = dialog.FileName;
+                    using (var csvReader = new CsvReader(new StreamReader(System.IO.File.OpenRead(filename)), true, ';'))
+                    {
+                        csvTable.Load(csvReader);
+                    }
+                    string Column1 = csvTable.Columns[0].ToString();
+                    string Row1 = csvTable.Rows[0][1].ToString();
+                    string area = "";
+                    string area_id = "";
+                    foreach (DataRow dr in csvTable.Rows)
+                    {
+                        Console.WriteLine("{0}, {1}, {2}", dr[0].ToString(), dr[1].ToString(), dr[2].ToString());
+
+
+                        try
+                        {
+                            if (dr[3].ToString() == "0")
+
+                                to = NewTO3(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()));
+                            else
+                            {
+                                if (area != dr[3].ToString())
+                                {
+                                    area = dr[3].ToString();
+                                    area_id = area + DateTime.Now.Subtract(new DateTime(2024, 1, 1)).TotalMilliseconds.ToString();
+                                }
+                           //     to = createTO3_const(dr[0].ToString(), dr[1].ToString(), int.Parse(dr[2].ToString()), area_id, int.Parse(dr[4].ToString()), dr[3].ToString(), dr[5].ToString());
+                            }
+
+
+                            var x2 = sys.Orders2Async(to, to.Transport_order_id).GetAwaiter().GetResult();
+                            Thread.Sleep(1000);
+                        }
+                        catch (ApiException ex)
+                        {
+                            Console.WriteLine("ERREUR ordre ...{0}", to.Transport_order_id);
+                            Console.WriteLine(ex.Message.ToString());
+
+                            updatedb_error(to.Transport_order_id, DateTime.Now, "Error " + ex.StatusCode, "wrong parameter sent to host", 0);
+
+                        }
+
+                        // refresh_orderDG();
+                        //   Console.WriteLine(Column1, Row1);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "load csv");
+
+            }
+        }
+
+
+
+        private void auto_incre(object sender, RoutedEventArgs e)
+        {
+            if (batch_autoincrment.IsChecked == true)
+            {
+
+                auto_increment = true;
+
+            }
+            else
+            {
+
+
+                auto_increment = false;
+
+            }
+        }
+
+        private void usef(object sender, RoutedEventArgs e)
+        {
+            if (usefetch.IsChecked == true)
+                use_fetch = true;
+            else use_fetch = false;
+        }
+
+        private void getackClick(object sender, RoutedEventArgs e)
+        {
+            HttpClient client2 = new HttpClient();
+            var sys = new Client(client2);
+            sys.BaseUrl = "http://" + IP_host + "/api/v1/";
+            try
+            {
+                var x = sys.EventsAllAsync(10, true, 0, null).GetAwaiter().GetResult();
+
+                foreach (Event item in x)
+                {
+                    Console.WriteLine(item.Event_id);
+
+                    Console.WriteLine(item.Created_at);
+                    Console.WriteLine(item.Type);
+
+
+                    if (item.Type == "AgvOperationEndEvent")
+                    {
+
+                        item.Payload.AdditionalProperties.TryGetValue("address", out object value);
+                        item.Payload.AdditionalProperties.TryGetValue("transport_order_id", out object value2);
+                        item.Payload.AdditionalProperties.TryGetValue("step_index", out object value3);
+                        item.Payload.AdditionalProperties.TryGetValue("drive_start_time", out object value4);
+                        item.Payload.AdditionalProperties.TryGetValue("error_name", out object error);
+                        item.Payload.AdditionalProperties.TryGetValue("end_status", out object status_op);
+                        Console.WriteLine(" validation adress: {0},transport_order_id : {1} , step {2} ", value, value2, value3);
+                        string er;
+                        if (error == null)
+                            er = "";
+                        else er = error.ToString();
+
+
+                        Dispatcher.Invoke(new InvokeDelegate(() =>
+                        {
+                            this.log2.Items.Add(" - t_id : " + value2.ToString() + " waiting ack for adresse: " + value.ToString() + ", step: " + value3.ToString() + "  ,status: " + status_op.ToString() + "  ,error: " + er);
+
+                        }));
+
+                        //MainWindow.updatedb(To_id, DateTimeOffset.Parse(start_time), status, int.Parse(Ev_id));
+                        // MainWindow.updatedb(value2.ToString(), value4.ToString(), "AGV waiting fetched ack", int.Parse(Ev_id));
+                      
+                            sys.ContinueAsync(value2.ToString(), item.Event_id);
+                            Console.WriteLine(" ack operation envoyé ");
+                            Dispatcher.Invoke(new InvokeDelegate(() =>
+                            {
+                                this.log2.Items.Add(" * t_id : " + value2.ToString() + " ack sent for adresse: " + value.ToString() + ", step: " + value3.ToString());
+                            }));
+                      
+
+
+                        // refresh_orderDG();
+
+                    }
+                    if (item.Type == "AgvArrivedToAddressEvent")
+                    {
+                        item.Payload.AdditionalProperties.TryGetValue("address", out object value);
+                        item.Payload.AdditionalProperties.TryGetValue("transport_order_id", out object value2);
+                        item.Payload.AdditionalProperties.TryGetValue("step_index", out object value3);
+                        item.Payload.AdditionalProperties.TryGetValue("drive_start_time", out object value4);
+                        Console.WriteLine("adress: {0},transport_order_id : {1} , step {2} ", value, value2, value3);
+
+                        Dispatcher.Invoke(new InvokeDelegate(() =>
+                        {
+                            this.log2.Items.Add(" * t_id : " + value2.ToString() + " waiting preload ack : adress: " + value.ToString() + ", step: " + value3.ToString());
+                        }));
+                       
+                            sys.ContinueAsync(value2.ToString(), item.Event_id);
+                            Console.WriteLine(" ack arrivé envoyé ");
+                            Dispatcher.Invoke(new InvokeDelegate(() =>
+                            {
+                                this.log2.Items.Add(" - t_id : " + value2.ToString() + " preload ack sent : adress: " + value.ToString() + " , step: " + value3.ToString());
+                                //  this.log.Items[this.log.Items.Count - 1].Background = Brushes.LimeGreen
+                            }));
+                       
+
+                    }
+                    if (item.Type == "UnconnectedOrderCreatedEvent")
+                    {
+                        Console.WriteLine("carwash");
+
+
+
+                    }
+                    if (item.Type == "ParameterUpdateEvent")
+                    {
+                        Console.WriteLine("event update");
+                        item.Payload.AdditionalProperties.TryGetValue("parameter_name", out object name);
+                        item.Payload.AdditionalProperties.TryGetValue("transport_order_id", out object To_id);
+                        item.Payload.AdditionalProperties.TryGetValue("parameter_value", out object value);
+                        //   item.Payload.AdditionalProperties.TryGetValue("drive_start_time", out object value4);
+
+
+
+
+                        ParameterRequestAnswer stp1 = new ParameterRequestAnswer
+                        {
+                            Event_id = item.Event_id,
+                            Parameter_name = name.ToString(),
+                            Parameter_value = value.ToString()
+                        };
+
+                        HttpClient client = new HttpClient();
+
+                        var syspar = new ParameterClient(client);
+
+                        syspar.BaseUrl = "http://" + IP_host + "/api/v1/";
+                        syspar.ParAsync(To_id.ToString(), stp1);
+
+
+
+
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString(), "send ack");
+
+            }
+
         }
     }
-
     public class T
     {
         public bool ok { get; set; }

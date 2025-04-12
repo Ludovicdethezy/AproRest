@@ -1254,9 +1254,9 @@ namespace AproRest
         /// <param name="body">The parameter value or an error code along with the name of the requested parameter.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public System.Threading.Tasks.Task AckAsync(string orderId, ParameterRequestAnswer body)
+        public System.Threading.Tasks.Task ParAsync(string orderId, ParameterRequestAnswer body)
         {
-            return AckAsync(orderId, body, System.Threading.CancellationToken.None);
+            return ParAsync(orderId, body, System.Threading.CancellationToken.None);
         }
     
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -1265,7 +1265,7 @@ namespace AproRest
         /// <param name="body">The parameter value or an error code along with the name of the requested parameter.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public async System.Threading.Tasks.Task AckAsync(string orderId, ParameterRequestAnswer body, System.Threading.CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task ParAsync(string orderId, ParameterRequestAnswer body, System.Threading.CancellationToken cancellationToken)
         {
             if (orderId == null)
                 throw new System.ArgumentNullException("orderId");
